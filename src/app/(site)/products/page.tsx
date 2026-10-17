@@ -2,7 +2,8 @@ import { PageHero } from "@/components/PageHero";
 import { ProductCatalogue } from "@/components/ProductCatalogue";
 import { CtaBand } from "@/components/CtaBand";
 import { Button } from "@/components/Button";
-import { getProducts, productCategories } from "@/content/products";
+import { productCategories } from "@/content/products";
+import { getProducts } from "@/lib/catalogue";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -12,8 +13,8 @@ export const metadata = pageMetadata({
   path: "/products",
 });
 
-export default function ProductsPage() {
-  const products = getProducts();
+export default async function ProductsPage() {
+  const products = await getProducts();
   return (
     <>
       <PageHero

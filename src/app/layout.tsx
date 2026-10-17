@@ -1,12 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/inter";
 import "./globals.css";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { JsonLd } from "@/components/JsonLd";
-import { ConsentAndAnalytics } from "@/components/ConsentAndAnalytics";
-import { absoluteUrl, mainNav, site } from "@/config/site";
-import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+import { absoluteUrl, site } from "@/config/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -41,15 +36,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <a href="#main" className="skip-link">Skip to main content</a>
-        <Header nav={mainNav} />
-        <main id="main" tabIndex={-1}>{children}</main>
-        <Footer />
-        <ConsentAndAnalytics />
-        <JsonLd data={organizationJsonLd()} />
-        <JsonLd data={websiteJsonLd()} />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

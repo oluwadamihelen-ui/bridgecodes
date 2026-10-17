@@ -1,9 +1,11 @@
 import { Button } from "@/components/Button";
+import { SiteChrome } from "@/components/SiteChrome";
 
 export const metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (
+    <SiteChrome>
     <section className="section">
       <div className="container" style={{ textAlign: "center", maxWidth: 640 }}>
         <p className="eyebrow">404</p>
@@ -17,5 +19,6 @@ export default function NotFound() {
         </div>
       </div>
     </section>
+    </SiteChrome>
   );
 }

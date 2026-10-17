@@ -1,0 +1,286 @@
+"use client";
+
+import { useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { productCategories, productStatuses, type Product } from "@/content/products";
+
+type Row = Record<string, string>;
+type Shot = { src: string; alt: string; width: number; height: number };
+
+const lines = (v?: string[]) => (v ?? []).join("\n");
+const slugify = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+
+/** Resize to maxDim and re-encode as WebP (JPEG fallback) so uploads stay small. */
+async function compress(file: File, maxDim: number): Promise<{ blob: Blob; width: number; height: number }> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale), height = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = width; canvas.height = height;
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, width, height);
+  for (const [type, q] of [["image/webp", 0.85], ["image/webp", 0.7], ["image/jpeg", 0.7]] as const) {
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, type, q));
+    if (blob && blob.size <= 680 * 1024) return { blob, width, height };
+  }
+  throw new Error("That image is too large even after compression. Try a smaller one.");
+}
+
+async function uploadImage(file: File, maxDim: number): Promise<{ src: string; width: number; height: number }> {
+  const { blob, width, height } = await compress(file, maxDim);
+  const fd = new FormData();
+  fd.append("file", blob, "upload");
+  const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message ?? "Upload failed.");
+  return { src: data.src, width, height };
+}
+
+function Field({ label, hint, children, id }: { label: string; hint?: string; children: React.ReactNode; id: string }) {
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      {children}
+      {hint && <p className="hint">{hint}</p>}
+    </div>
+  );
+}
+
+function Rows({ title, hint, rows, setRows, cols, addLabel }: {
+  title: string; hint?: string; rows: Row[]; setRows: (r: Row[]) => void; addLabel: string;
+  cols: { key: string; label: string; placeholder?: string; wide?: boolean }[];
+}) {
+  const uid = useId();
+  return (
+    <fieldset className="admin__group">
+      <legend>{title}</legend>
+      {hint && <p className="hint" style={{ marginTop: 0 }}>{hint}</p>}
+      {rows.map((row, i) => (
+        <div className="admin__row" key={i}>
+          {cols.map((c) => (
+            <div className="field" key={c.key} style={c.wide ? { flex: 2 } : undefined}>
+              <label htmlFor={`${uid}-${i}-${c.key}`}>{c.label}</label>
+              <input id={`${uid}-${i}-${c.key}`} type="text" value={row[c.key] ?? ""} placeholder={c.placeholder}
+                onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, [c.key]: e.target.value } : r)))} />
+            </div>
+          ))}
+          <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRows(rows.filter((_, j) => j !== i))} aria-label={`Remove ${title} row ${i + 1}`}>Remove</button>
+        </div>
+      ))}
+      <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRows([...rows, {}])}>{addLabel}</button>
+    </fieldset>
+  );
+}
+
+export function ProductForm({ product }: { product?: Product }) {
+  const router = useRouter();
+  const editing = Boolean(product);
+  const uid = useId();
+  const topRef = useRef<HTMLDivElement>(null);
+
+  const [name, setName] = useState(product?.name ?? "");
+  const [slug, setSlug] = useState(product?.slug ?? "");
+  const [slugTouched, setSlugTouched] = useState(editing);
+  const [published, setPublished] = useState(product?.published ?? false);
+  const [status, setStatus] = useState<string>(product?.status ?? "in-development");
+  const [category, setCategory] = useState<string>(product?.category ?? "");
+  const [shortDescription, setShort] = useState(product?.shortDescription ?? "");
+  const [overview, setOverview] = useState(product?.overview ?? "");
+  const [audience, setAudience] = useState(lines(product?.audience));
+  const [capabilities, setCapabilities] = useState(lines(product?.capabilities));
+  const [features, setFeatures] = useState<Row[]>(product?.features ?? []);
+  const [shots, setShots] = useState<Shot[]>(product?.screenshots ?? []);
+  const [logo, setLogo] = useState(product?.logo ?? null);
+  const [requirements, setRequirements] = useState(lines(product?.requirements));
+  const [platforms, setPlatforms] = useState(lines(product?.platforms));
+  const [deployment, setDeployment] = useState(lines(product?.deployment));
+  const [pricingDisplay, setPricingDisplay] = useState(product?.pricing?.display ?? "");
+  const [pricingNote, setPricingNote] = useState(product?.pricing?.note ?? "");
+  const [licensing, setLicensing] = useState(product?.licensing ?? "");
+  const [installation, setInstallation] = useState(lines(product?.installation));
+  const [documentation, setDocumentation] = useState<Row[]>(product?.documentation ?? []);
+  const [updatePolicy, setUpdatePolicy] = useState(product?.updatePolicy ?? "");
+  const [supportNote, setSupportNote] = useState(product?.supportNote ?? "");
+  const [version, setVersion] = useState(product?.version ?? "");
+  const [purchaseLinks, setPurchaseLinks] = useState<Row[]>(product?.purchaseLinks ?? []);
+  const [trialLabel, setTrialLabel] = useState(product?.trialLink?.label ?? "");
+  const [trialHref, setTrialHref] = useState(product?.trialLink?.href ?? "");
+
+  const [errors, setErrors] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState("");
+
+  const split = (s: string) => s.split("\n").map((x) => x.trim()).filter(Boolean);
+
+  async function addShots(files: FileList | null) {
+    if (!files?.length) return;
+    setUploading("Uploading screenshots…"); setErrors([]);
+    try {
+      const added: Shot[] = [];
+      for (const f of Array.from(files)) added.push({ ...(await uploadImage(f, 1600)), alt: "" });
+      setShots((s) => [...s, ...added]);
+    } catch (e) { setErrors([e instanceof Error ? e.message : "Upload failed."]); }
+    setUploading("");
+  }
+  async function setLogoFile(files: FileList | null) {
+    if (!files?.[0]) return;
+    setUploading("Uploading logo…"); setErrors([]);
+    try { const r = await uploadImage(files[0], 256); setLogo({ src: r.src, alt: `${name || "Product"} logo` }); }
+    catch (e) { setErrors([e instanceof Error ? e.message : "Upload failed."]); }
+    setUploading("");
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErrors([]);
+    const payload = {
+      slug, name, published, status, category, shortDescription, overview,
+      audience: split(audience), capabilities: split(capabilities),
+      features, screenshots: shots, logo: logo ?? undefined,
+      requirements: split(requirements), platforms: split(platforms), deployment: split(deployment),
+      pricingDisplay, pricingNote, licensing, installation: split(installation), documentation,
+      updatePolicy, supportNote, version, purchaseLinks, trialLink: { label: trialLabel, href: trialHref },
+    };
+    try {
+      const res = await fetch(editing ? `/api/admin/products/${encodeURIComponent(product!.slug)}` : "/api/admin/products", {
+        method: editing ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) { router.push(`/admin?saved=${encodeURIComponent(data.slug)}`); router.refresh(); return; }
+      setErrors(data.errors ?? [data.message ?? "Could not save."]);
+    } catch { setErrors(["Network error. Please try again."]); }
+    setBusy(false);
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const id = (k: string) => `${uid}-${k}`;
+
+  return (
+    <form className="form admin__form" onSubmit={onSubmit} noValidate>
+      <div ref={topRef} tabIndex={-1}>
+        {errors.length > 0 && (
+          <div className="notice notice--error" role="alert">
+            <strong>Please fix the following:</strong>
+            <ul style={{ margin: "8px 0 0", paddingLeft: 20 }}>{errors.map((m) => <li key={m}>{m}</li>)}</ul>
+          </div>
+        )}
+      </div>
+
+      <fieldset className="admin__group">
+        <legend>Basics</legend>
+        <Field id={id("name")} label="Product name *">
+          <input id={id("name")} type="text" value={name} maxLength={80} required
+            onChange={(e) => { setName(e.target.value); if (!slugTouched) setSlug(slugify(e.target.value)); }} />
+        </Field>
+        <Field id={id("slug")} label="Web address *" hint={editing ? "The address cannot be changed after the product is created." : `Appears as /products/${slug || "your-product"}. Letters, numbers and hyphens.`}>
+          <input id={id("slug")} type="text" value={slug} maxLength={60} required readOnly={editing}
+            onChange={(e) => { setSlugTouched(true); setSlug(e.target.value.toLowerCase()); }} />
+        </Field>
+        <div className="admin__cols">
+          <Field id={id("category")} label="Category *">
+            <select id={id("category")} value={category} onChange={(e) => setCategory(e.target.value)} required>
+              <option value="" disabled>Select…</option>
+              {productCategories.map((c) => <option key={c}>{c}</option>)}
+            </select>
+          </Field>
+          <Field id={id("status")} label="Status *" hint="Be honest: use In Development or Coming Soon until it can be bought or used.">
+            <select id={id("status")} value={status} onChange={(e) => setStatus(e.target.value)}>
+              {Object.entries(productStatuses).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </Field>
+        </div>
+        <label className="admin__check">
+          <input type="checkbox" checked={published} onChange={(e) => setPublished(e.target.checked)} />
+          <span><strong>Published</strong> — show this product on the website. Leave unticked to keep it as a hidden draft.</span>
+        </label>
+      </fieldset>
+
+      <fieldset className="admin__group">
+        <legend>Description</legend>
+        <Field id={id("short")} label="Short description *" hint="One or two sentences, shown on the product card.">
+          <textarea id={id("short")} rows={2} maxLength={220} value={shortDescription} onChange={(e) => setShort(e.target.value)} required />
+        </Field>
+        <Field id={id("overview")} label="Overview *" hint="What it does and the problem it solves. Facts only.">
+          <textarea id={id("overview")} rows={6} maxLength={4000} value={overview} onChange={(e) => setOverview(e.target.value)} required />
+        </Field>
+        <div className="admin__cols">
+          <Field id={id("aud")} label="Intended users * (one per line)">
+            <textarea id={id("aud")} rows={4} value={audience} onChange={(e) => setAudience(e.target.value)} placeholder={"Small businesses\nSchool administrators"} />
+          </Field>
+          <Field id={id("cap")} label="Key capabilities * (one per line)">
+            <textarea id={id("cap")} rows={4} value={capabilities} onChange={(e) => setCapabilities(e.target.value)} placeholder={"Invoicing\nReporting"} />
+          </Field>
+        </div>
+      </fieldset>
+
+      <Rows title="Features (optional)" rows={features} setRows={setFeatures} addLabel="Add feature"
+        cols={[{ key: "title", label: "Title" }, { key: "description", label: "Description", wide: true }]} />
+
+      <fieldset className="admin__group">
+        <legend>Images (optional)</legend>
+        <p className="hint" style={{ marginTop: 0 }}>Only upload real screenshots of the product. Images are resized and compressed automatically.</p>
+        <div className="admin__thumbs">
+          {shots.map((s, i) => (
+            <div className="admin__thumb" key={s.src}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={s.src} alt="" width={160} />
+              <div className="field">
+                <label htmlFor={id(`alt${i}`)}>What does it show? *</label>
+                <input id={id(`alt${i}`)} type="text" value={s.alt} onChange={(e) => setShots(shots.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))} placeholder="Dashboard showing monthly invoices" />
+              </div>
+              <button type="button" className="btn btn--secondary btn--sm" onClick={() => setShots(shots.filter((_, j) => j !== i))}>Remove</button>
+            </div>
+          ))}
+        </div>
+        <Field id={id("shots")} label="Add screenshots"><input id={id("shots")} type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple onChange={(e) => { addShots(e.target.files); e.target.value = ""; }} /></Field>
+        <div className="admin__thumb">
+          {logo && <>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={logo.src} alt="" width={64} /><button type="button" className="btn btn--secondary btn--sm" onClick={() => setLogo(null)}>Remove logo</button></>}
+        </div>
+        <Field id={id("logo")} label="Product logo (square works best)"><input id={id("logo")} type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => { setLogoFile(e.target.files); e.target.value = ""; }} /></Field>
+        {uploading && <p className="hint" role="status">{uploading}</p>}
+      </fieldset>
+
+      <fieldset className="admin__group">
+        <legend>Technical details (optional)</legend>
+        <div className="admin__cols">
+          <Field id={id("req")} label="Requirements (one per line)"><textarea id={id("req")} rows={3} value={requirements} onChange={(e) => setRequirements(e.target.value)} /></Field>
+          <Field id={id("plat")} label="Supported platforms (one per line)"><textarea id={id("plat")} rows={3} value={platforms} onChange={(e) => setPlatforms(e.target.value)} /></Field>
+          <Field id={id("dep")} label="Deployment options (one per line)"><textarea id={id("dep")} rows={3} value={deployment} onChange={(e) => setDeployment(e.target.value)} /></Field>
+        </div>
+        <Field id={id("inst")} label="Installation steps (one per line)"><textarea id={id("inst")} rows={4} value={installation} onChange={(e) => setInstallation(e.target.value)} /></Field>
+        <Field id={id("ver")} label="Version"><input id={id("ver")} type="text" value={version} maxLength={40} onChange={(e) => setVersion(e.target.value)} placeholder="1.0.0" /></Field>
+      </fieldset>
+
+      <fieldset className="admin__group">
+        <legend>Pricing, licensing and policies (optional)</legend>
+        <p className="hint" style={{ marginTop: 0 }}>Leave the price blank until it is confirmed — the page will say “Contact us”.</p>
+        <div className="admin__cols">
+          <Field id={id("price")} label="Price (shown exactly as typed)"><input id={id("price")} type="text" value={pricingDisplay} maxLength={80} onChange={(e) => setPricingDisplay(e.target.value)} placeholder="From $29/month" /></Field>
+          <Field id={id("pnote")} label="Price note"><input id={id("pnote")} type="text" value={pricingNote} maxLength={200} onChange={(e) => setPricingNote(e.target.value)} /></Field>
+        </div>
+        <Field id={id("lic")} label="Licensing"><textarea id={id("lic")} rows={2} value={licensing} onChange={(e) => setLicensing(e.target.value)} /></Field>
+        <Field id={id("upd")} label="Updates and maintenance"><textarea id={id("upd")} rows={2} value={updatePolicy} onChange={(e) => setUpdatePolicy(e.target.value)} /></Field>
+        <Field id={id("sup")} label="Support note"><textarea id={id("sup")} rows={2} value={supportNote} onChange={(e) => setSupportNote(e.target.value)} /></Field>
+      </fieldset>
+
+      <Rows title="Documentation links (optional)" rows={documentation} setRows={setDocumentation} addLabel="Add documentation link"
+        cols={[{ key: "label", label: "Label", placeholder: "User guide" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
+
+      <Rows title="Where to buy (optional)" hint="Add a link ONLY when it is live — your own checkout or a real marketplace listing. Until then, visitors are shown an enquiry button."
+        rows={purchaseLinks} setRows={setPurchaseLinks} addLabel="Add purchase link"
+        cols={[{ key: "label", label: "Button text", placeholder: "Buy now" }, { key: "channel", label: "Sold on", placeholder: "Bridgecodes website" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
+
+      <fieldset className="admin__group">
+        <legend>Trial or demo (optional)</legend>
+        <div className="admin__cols">
+          <Field id={id("tl")} label="Button text"><input id={id("tl")} type="text" value={trialLabel} onChange={(e) => setTrialLabel(e.target.value)} placeholder="Try the demo" /></Field>
+          <Field id={id("th")} label="Link"><input id={id("th")} type="text" value={trialHref} onChange={(e) => setTrialHref(e.target.value)} placeholder="https://…" /></Field>
+        </div>
+      </fieldset>
+
+      <div className="btn-row">
+        <button className="btn btn--primary" type="submit" disabled={busy || Boolean(uploading)}>{busy ? "Saving…" : editing ? "Save changes" : "Create product"}</button>
+        <button className="btn btn--secondary" type="button" onClick={() => router.push("/admin")}>Cancel</button>
+      </div>
+    </form>
+  );
+}

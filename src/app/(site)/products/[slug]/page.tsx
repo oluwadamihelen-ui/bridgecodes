@@ -6,22 +6,21 @@ import { PageHero } from "@/components/PageHero";
 import { StatusBadge } from "@/components/StatusBadge";
 import { JsonLd } from "@/components/JsonLd";
 import { Button } from "@/components/Button";
-import { getProduct, getProducts } from "@/content/products";
+import { getProduct, getProducts } from "@/lib/catalogue";
 import { absoluteUrl, site } from "@/config/site";
 import { pageMetadata } from "@/lib/seo";
 
 type Params = { slug: string };
 
-export const dynamicParams = false;
+// New products saved in the admin render on first visit; unknown slugs return 404.
+export const dynamicParams = true;
 
-export function generateStaticParams(): Params[] {
-  const params = getProducts().map((p) => ({ slug: p.slug }));
-  // Next.js requires at least one param with dynamicParams=false; a placeholder 404s in the page.
-  return params.length ? params : [{ slug: "_none" }];
+export async function generateStaticParams(): Promise<Params[]> {
+  return (await getProducts()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const p = getProduct((await params).slug);
+  const p = await getProduct((await params).slug);
   if (!p) return {};
   return pageMetadata({
     title: p.name,
@@ -44,7 +43,7 @@ const List = ({ items }: { items: string[] }) => (
 );
 
 export default async function ProductPage({ params }: { params: Promise<Params> }) {
-  const p = getProduct((await params).slug);
+  const p = await getProduct((await params).slug);
   if (!p) notFound();
 
   const supportEmail = site.contact.supportEmail ?? site.contact.email;

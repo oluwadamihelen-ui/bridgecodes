@@ -4,7 +4,7 @@ import { CtaBand } from "@/components/CtaBand";
 import { Icon } from "@/components/Icon";
 import { solutions } from "@/content/solutions";
 import { services } from "@/content/services";
-import { getProducts } from "@/content/products";
+import { getProducts } from "@/lib/catalogue";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -14,8 +14,8 @@ export const metadata = pageMetadata({
   path: "/solutions",
 });
 
-export default function SolutionsPage() {
-  const products = getProducts();
+export default async function SolutionsPage() {
+  const products = await getProducts();
   return (
     <>
       <PageHero

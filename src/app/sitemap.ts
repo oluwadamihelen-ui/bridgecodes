@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl, footerNav, mainNav } from "@/config/site";
-import { getProducts } from "@/content/products";
+import { getProducts } from "@/lib/catalogue";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paths = new Set<string>(["/", "/support", "/faq"]);
   mainNav.forEach((n) => paths.add(n.href));
   Object.values(footerNav).flat().forEach((n) => paths.add(n.href));
-  getProducts().forEach((p) => paths.add(`/products/${p.slug}`));
+  (await getProducts()).forEach((p) => paths.add(`/products/${p.slug}`));
 
   return [...paths].map((path) => ({
     url: absoluteUrl(path),

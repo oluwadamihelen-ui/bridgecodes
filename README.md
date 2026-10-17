@@ -16,20 +16,40 @@ npm run check:links            # with the production server running: crawls all 
 ```
 
 To test forms locally without an email provider, set `ENQUIRY_STORE_DIR=./data`; submissions are appended to `data/enquiries.jsonl` (git-ignored).
-To preview the product layouts with the unpublished template product: `PREVIEW_UNPUBLISHED_PRODUCTS=true npm run dev` (never active in production).
+To preview draft (unpublished) products on the public pages in dev: `PREVIEW_UNPUBLISHED_PRODUCTS=true npm run dev` (never active in production).
 
 ## Where to edit things (no component changes needed)
 
 | What | File |
 |---|---|
 | Company identity, contact, socials, legal settings | env vars → `src/config/site.ts` |
-| Products, prices, purchase links, screenshots, docs | `src/content/products.ts` (screenshots in `public/products/<slug>/`) |
+| Products, prices, purchase links, screenshots, docs | **Admin area at `/admin`** (see below); a code fallback list lives in `src/content/products.ts` |
 | Services / solutions | `src/content/services.ts`, `src/content/solutions.ts` |
 | FAQs | `src/content/faqs.ts` |
 | Documentation & resources | `src/content/resources.ts` (only add what exists) |
 | Legal pages | `src/content/legal.ts` |
 
 Nothing is invented: any value not configured is hidden, and unresolved legal details show as highlighted `TO CONFIRM` markers. The site ships with **no published products** until real ones are added.
+
+## Admin area: add products without touching code
+
+`/admin` is a password-protected dashboard to add, edit, publish/unpublish and delete products, upload screenshots, and set prices and purchase links. Changes appear on the live site within moments, with no redeploy.
+
+**One-time setup on Vercel**
+
+1. Vercel dashboard → your project → **Storage** (or **Marketplace**) → add **Upstash Redis** and connect it to the project. This automatically adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
+2. Project → **Settings → Environment Variables**: add `ADMIN_PASSWORD` (12+ characters; make it long and unique). Optionally add `ADMIN_SESSION_SECRET` (`openssl rand -hex 32`).
+3. **Redeploy** (Deployments → ⋯ → Redeploy).
+4. Open `https://your-domain/admin`, sign in, and click **Add product**.
+
+**Locally:** put `ADMIN_PASSWORD=some-long-password` in `.env.local`, run `npm run dev`, open `/admin`. Data is saved to `./data` (git-ignored).
+
+Notes
+- Until `ADMIN_PASSWORD` is set, `/admin` returns 404 (it does not exist). The admin is excluded from search engines and the sitemap.
+- Login: signed HttpOnly SameSite=Strict cookie (8 h), rate-limited; all changes are validated on the server; uploads are checked by file contents and compressed in the browser (≤ 700 KB).
+- Products are stored in Upstash Redis (or `ADMIN_DATA_DIR` on a persistent disk). Back them up if they matter: Upstash console → Data Browser → key `bc:products`.
+- Single owner: there is one shared password and no per-user accounts or audit log.
+- Starting list: with nothing saved, the site uses `codeProducts` in `src/content/products.ts` (empty by default). Once you save from the admin, the admin's list is used.
 
 ## Environment variables
 
@@ -39,6 +59,7 @@ See `.env.example` for the full annotated list. Values are read at **build time*
 - **Legal:** `LEGAL_EFFECTIVE_DATE`, `LEGAL_GOVERNING_JURISDICTION`, `LEGAL_PRIVACY_CONTACT_EMAIL`, `LEGAL_REFUND_WINDOW_DAYS`, `LEGAL_REVIEWED`
 - **Form delivery (at least one required):** `RESEND_API_KEY` + `ENQUIRY_FROM_EMAIL` + `ENQUIRY_TO_EMAIL` (+ optional `SUPPORT_TO_EMAIL`), and/or `ENQUIRY_STORE_DIR`
 - **Spam:** `FORM_TOKEN_SECRET` (required in production; `openssl rand -hex 32`), optional `TURNSTILE_SITE_KEY`/`TURNSTILE_SECRET_KEY`
+- **Admin:** `ADMIN_PASSWORD`, optional `ADMIN_SESSION_SECRET`, and storage: `KV_REST_API_URL` + `KV_REST_API_TOKEN` (Upstash) or `ADMIN_DATA_DIR`
 - **Analytics (optional):** `PLAUSIBLE_DOMAIN`, `PLAUSIBLE_SCRIPT_SRC`, `ANALYTICS_REQUIRES_CONSENT`
 
 Secrets (`RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `FORM_TOKEN_SECRET`) are only read in server code and never sent to the browser.
@@ -63,7 +84,7 @@ The in-memory rate limiter is per server instance; add an edge/WAF limit if you 
 - [ ] Add confirmed contact email, support email, address and registration number (only if appropriate)
 - [ ] Have a lawyer review **all five legal pages**; resolve every highlighted `TO CONFIRM`; set effective date, jurisdiction, refund window; then `LEGAL_REVIEWED=true`
 - [ ] Align refund/licence text with each marketplace's agreements
-- [ ] Add real products to `products.ts` (screenshots, confirmed prices, live purchase links only)
+- [ ] Connect storage, set `ADMIN_PASSWORD`, and add real products in `/admin` (real screenshots, confirmed prices, live purchase links only)
 - [ ] Publish documentation and add it to products/resources
 - [ ] Add official social profile URLs
 - [ ] Decide on analytics and consent; update the Cookie Policy accordingly

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { CtaBand } from "@/components/CtaBand";
 import { resourceCategories, resourceItems } from "@/content/resources";
-import { getProducts } from "@/content/products";
+import { getProducts } from "@/lib/catalogue";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -12,9 +12,9 @@ export const metadata = pageMetadata({
   path: "/resources",
 });
 
-export default function ResourcesPage() {
+export default async function ResourcesPage() {
   // Documentation published on products is surfaced automatically.
-  const productDocs = getProducts().flatMap((p) =>
+  const productDocs = (await getProducts()).flatMap((p) =>
     (p.documentation ?? []).map((d) => ({ title: `${p.name}: ${d.label}`, description: `Documentation for ${p.name}.`, href: d.href, category: "documentation" as const })),
   );
   const items = [...resourceItems, ...productDocs];

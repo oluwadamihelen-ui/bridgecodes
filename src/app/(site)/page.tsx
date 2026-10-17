@@ -4,7 +4,8 @@ import { HeroVisual } from "@/components/HeroVisual";
 import { Icon } from "@/components/Icon";
 import { ProductCard } from "@/components/ProductCard";
 import { CtaBand } from "@/components/CtaBand";
-import { getProducts, productCategories } from "@/content/products";
+import { productCategories } from "@/content/products";
+import { getProducts } from "@/lib/catalogue";
 import { services, serviceProcess } from "@/content/services";
 import { site } from "@/config/site";
 import { pageMetadata } from "@/lib/seo";
@@ -25,8 +26,8 @@ const principles = [
   { icon: "lifebuoy", title: "Ongoing support options", text: "Support and maintenance arrangements can be agreed for the software we build and sell." },
 ];
 
-export default function HomePage() {
-  const products = getProducts();
+export default async function HomePage() {
+  const products = await getProducts();
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
