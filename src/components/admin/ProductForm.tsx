@@ -35,12 +35,13 @@ async function uploadImage(file: File, maxDim: number): Promise<{ src: string; w
   return { src: data.src, width, height };
 }
 
-function Field({ label, hint, children, id }: { label: string; hint?: string; children: React.ReactNode; id: string }) {
+function Field({ label, hint, children, id, error }: { label: string; hint?: string; children: React.ReactNode; id: string; error?: string }) {
   return (
-    <div className="field">
+    <div className={`field${error ? " field--error" : ""}`}>
       <label htmlFor={id}>{label}</label>
       {children}
       {hint && <p className="hint">{hint}</p>}
+      {error && <p className="field__error" role="alert">{error}</p>}
     </div>
   );
 }
@@ -110,6 +111,7 @@ export function ProductForm({ product }: { product?: Product }) {
   const [trialHref, setTrialHref] = useState(product?.trialLink?.href ?? "");
 
   const [errors, setErrors] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState("");
 
@@ -135,7 +137,25 @@ export function ProductForm({ product }: { product?: Product }) {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true); setErrors([]);
+    setErrors([]); setFieldErrors({});
+    const missing: Record<string, string> = {};
+    if (!name.trim()) missing.name = "Enter the product name.";
+    if (!slug.trim()) missing.slug = "Enter a web address (it is filled in automatically from the name).";
+    if (!category) missing.category = "Choose a category.";
+    if (!shortDescription.trim()) missing.short = "Add a short description.";
+    if (!overview.trim()) missing.overview = "Add an overview.";
+    if (!split(audience).length) missing.aud = "Add at least one intended user, one per line.";
+    if (!split(capabilities).length) missing.cap = "Add at least one capability, one per line.";
+    const firstMissing = Object.keys(missing)[0];
+    if (firstMissing) {
+      setFieldErrors(missing);
+      setErrors([`${Object.keys(missing).length} required ${Object.keys(missing).length === 1 ? "field is" : "fields are"} empty. They are marked in red below.`]);
+      const el = document.getElementById(id(firstMissing));
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus({ preventScroll: true });
+      return;
+    }
+    setBusy(true);
     const payload = {
       slug, name, published, status, category, shortDescription, overview,
       audience: split(audience), capabilities: split(capabilities),
@@ -169,18 +189,20 @@ export function ProductForm({ product }: { product?: Product }) {
         )}
       </div>
 
+      <p className="hint" style={{ margin: 0 }}>Fields marked <span className="req">*</span> are required. Everything else is optional.</p>
+
       <fieldset className="admin__group">
         <legend>Basics</legend>
-        <Field id={id("name")} label="Product name *">
+        <Field id={id("name")} label="Product name *" error={fieldErrors.name}>
           <input id={id("name")} type="text" value={name} maxLength={80} required
             onChange={(e) => { setName(e.target.value); if (!slugTouched) setSlug(slugify(e.target.value)); }} />
         </Field>
-        <Field id={id("slug")} label="Web address *" hint={editing ? "The address cannot be changed after the product is created." : `Appears as /products/${slug || "your-product"}. Letters, numbers and hyphens.`}>
+        <Field id={id("slug")} label="Web address *" error={fieldErrors.slug} hint={editing ? "The address cannot be changed after the product is created." : `Appears as /products/${slug || "your-product"}. Letters, numbers and hyphens.`}>
           <input id={id("slug")} type="text" value={slug} maxLength={60} required readOnly={editing}
             onChange={(e) => { setSlugTouched(true); setSlug(e.target.value.toLowerCase()); }} />
         </Field>
         <div className="admin__cols">
-          <Field id={id("category")} label="Category *">
+          <Field id={id("category")} label="Category *" error={fieldErrors.category}>
             <select id={id("category")} value={category} onChange={(e) => setCategory(e.target.value)} required>
               <option value="" disabled>Select…</option>
               {productCategories.map((c) => <option key={c}>{c}</option>)}
@@ -200,17 +222,17 @@ export function ProductForm({ product }: { product?: Product }) {
 
       <fieldset className="admin__group">
         <legend>Description</legend>
-        <Field id={id("short")} label="Short description *" hint="One or two sentences, shown on the product card.">
+        <Field id={id("short")} label="Short description *" error={fieldErrors.short} hint="One or two sentences, shown on the product card.">
           <textarea id={id("short")} rows={2} maxLength={220} value={shortDescription} onChange={(e) => setShort(e.target.value)} required />
         </Field>
-        <Field id={id("overview")} label="Overview *" hint="What it does and the problem it solves. Facts only.">
+        <Field id={id("overview")} label="Overview *" error={fieldErrors.overview} hint="What it does and the problem it solves. Facts only.">
           <textarea id={id("overview")} rows={6} maxLength={4000} value={overview} onChange={(e) => setOverview(e.target.value)} required />
         </Field>
         <div className="admin__cols">
-          <Field id={id("aud")} label="Intended users * (one per line)">
+          <Field id={id("aud")} label="Intended users * (one per line)" error={fieldErrors.aud}>
             <textarea id={id("aud")} rows={4} value={audience} onChange={(e) => setAudience(e.target.value)} placeholder={"Small businesses\nSchool administrators"} />
           </Field>
-          <Field id={id("cap")} label="Key capabilities * (one per line)">
+          <Field id={id("cap")} label="Key capabilities * (one per line)" error={fieldErrors.cap}>
             <textarea id={id("cap")} rows={4} value={capabilities} onChange={(e) => setCapabilities(e.target.value)} placeholder={"Invoicing\nReporting"} />
           </Field>
         </div>
