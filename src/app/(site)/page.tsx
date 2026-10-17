@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/Button";
 import { HeroVisual } from "@/components/HeroVisual";
 import { Icon } from "@/components/Icon";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductGrid } from "@/components/ProductCard";
 import { CtaBand } from "@/components/CtaBand";
 import { productCategories } from "@/content/products";
 import { getProducts } from "@/lib/catalogue";
@@ -81,9 +81,7 @@ export default async function HomePage() {
           </div>
           {products.length > 0 ? (
             <>
-              <div className="grid grid--3">
-                {products.slice(0, 3).map((p) => <ProductCard key={p.slug} product={p} />)}
-              </div>
+              <ProductGrid products={products.slice(0, 3)} />
               <p style={{ marginTop: 28 }}>
                 <Link className="link-arrow" href="/products">View all products <Icon name="arrow" size={16} /></Link>
               </p>

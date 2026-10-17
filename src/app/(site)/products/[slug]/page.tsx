@@ -6,6 +6,7 @@ import { PageHero } from "@/components/PageHero";
 import { StatusBadge } from "@/components/StatusBadge";
 import { JsonLd } from "@/components/JsonLd";
 import { Button } from "@/components/Button";
+import { ImageCarousel } from "@/components/ImageCarousel";
 import { getProduct, getProducts } from "@/lib/catalogue";
 import { absoluteUrl, site } from "@/config/site";
 import { pageMetadata } from "@/lib/seo";
@@ -95,11 +96,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
             <Block title="Screenshots">
               {p.screenshots && p.screenshots.length > 0 ? (
-                <div className="shots">
-                  {p.screenshots.map((s) => (
-                    <Image key={s.src} src={s.src} alt={s.alt} width={s.width} height={s.height} sizes="(max-width: 960px) 100vw, 400px" />
-                  ))}
-                </div>
+                <ImageCarousel images={p.screenshots} label={`${p.name} screenshots`} sizes="(max-width: 960px) 100vw, 640px" fit="contain" priority />
               ) : (
                 <p className="note">Screenshots will be added when the product interface is ready to show.</p>
               )}

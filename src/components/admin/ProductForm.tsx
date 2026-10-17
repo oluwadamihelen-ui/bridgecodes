@@ -248,7 +248,7 @@ export function ProductForm({ product }: { product?: Product }) {
 
       <fieldset className="admin__group">
         <legend>Images (optional)</legend>
-        <p className="hint" style={{ marginTop: 0 }}>Only upload real screenshots of the product. Images are resized and compressed automatically.</p>
+        <p className="hint" style={{ marginTop: 0 }}>Only upload real screenshots of the product. They appear as a swipeable carousel on the website; the first image is the cover. Images are resized and compressed automatically.</p>
         <div className="admin__thumbs">
           {shots.map((s, i) => (
             <div className="admin__thumb" key={s.src}>
@@ -258,7 +258,10 @@ export function ProductForm({ product }: { product?: Product }) {
                 <label htmlFor={id(`alt${i}`)}>What does it show? *</label>
                 <input id={id(`alt${i}`)} type="text" value={s.alt} onChange={(e) => setShots(shots.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))} placeholder="Dashboard showing monthly invoices" />
               </div>
-              <button type="button" className="btn btn--secondary btn--sm" onClick={() => setShots(shots.filter((_, j) => j !== i))}>Remove</button>
+              <div className="btn-row">
+                {i > 0 && <button type="button" className="btn btn--secondary btn--sm" onClick={() => setShots([shots[i], ...shots.filter((_, j) => j !== i)])}>Make first</button>}
+                <button type="button" className="btn btn--secondary btn--sm" onClick={() => setShots(shots.filter((_, j) => j !== i))}>Remove</button>
+              </div>
             </div>
           ))}
         </div>

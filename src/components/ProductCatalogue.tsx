@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ProductCard } from "./ProductCard";
+import { ProductGrid } from "./ProductCard";
 import { Icon } from "./Icon";
 import { productStatuses, type Product } from "@/content/products";
+
+/** Search and filters only appear once the catalogue is big enough to need them. */
+const FILTERS_FROM = 4;
 
 export function ProductCatalogue({ products, categories }: { products: Product[]; categories: readonly string[] }) {
   const [q, setQ] = useState("");
@@ -25,7 +28,7 @@ export function ProductCatalogue({ products, categories }: { products: Product[]
 
   return (
     <div>
-      <form className="filters" role="search" aria-label="Filter products" onSubmit={(e) => e.preventDefault()}>
+      {products.length >= FILTERS_FROM && <form className="filters" role="search" aria-label="Filter products" onSubmit={(e) => e.preventDefault()}>
         <div className="field filters__search">
           <label htmlFor="product-search">Search by product name</label>
           <div className="input-icon">
@@ -47,16 +50,14 @@ export function ProductCatalogue({ products, categories }: { products: Product[]
             {Object.entries(productStatuses).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </div>
-      </form>
+      </form>}
 
       <p className="results-count" role="status" aria-live="polite">
         {results.length} {results.length === 1 ? "product" : "products"}{filtered ? " match your filters" : ""}
       </p>
 
       {results.length > 0 ? (
-        <div className="grid grid--3">
-          {results.map((p) => <ProductCard key={p.slug} product={p} />)}
-        </div>
+        <ProductGrid products={results} />
       ) : (
         <div className="empty">
           <h3>No products match your search</h3>
