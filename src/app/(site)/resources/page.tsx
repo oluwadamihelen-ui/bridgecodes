@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { CtaBand } from "@/components/CtaBand";
-import { resourceCategories, resourceItems } from "@/content/resources";
+import { guessResourceCategory, resourceCategories, resourceItems } from "@/content/resources";
 import { getProducts } from "@/lib/catalogue";
 import { pageMetadata } from "@/lib/seo";
 
@@ -15,7 +15,7 @@ export const metadata = pageMetadata({
 export default async function ResourcesPage() {
   // Documentation published on products is surfaced automatically.
   const productDocs = (await getProducts()).flatMap((p) =>
-    (p.documentation ?? []).map((d) => ({ title: `${p.name}: ${d.label}`, description: `Documentation for ${p.name}.`, href: d.href, category: "documentation" as const })),
+    (p.documentation ?? []).map((d) => ({ title: `${p.name}: ${d.label}`, description: `${d.label} for ${p.name}.`, href: d.href, category: d.category ?? guessResourceCategory(d.label) })),
   );
   const items = [...resourceItems, ...productDocs];
   const anyPublished = items.length > 0;
@@ -46,7 +46,7 @@ export default async function ResourcesPage() {
                   <p>{c.description}</p>
                   {list.length > 0 ? (
                     <ul className="plain-list">
-                      {list.map((i) => <li key={i.href}><a href={i.href}>{i.title}</a></li>)}
+                      {list.map((i) => <li key={i.href}><a href={i.href} {...(/^https?:/.test(i.href) ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{i.title}</a></li>)}
                     </ul>
                   ) : (
                     <p><span className="badge badge--coming-soon">Forthcoming</span></p>

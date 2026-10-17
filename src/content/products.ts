@@ -16,6 +16,8 @@
  * site must not invent products, prices or listings.
  */
 
+import type { ResourceCategoryId } from "./resources";
+
 export const productCategories = [
   "Business Management Software",
   "Education Technology",
@@ -59,7 +61,8 @@ export type Product = {
   pricing?: { display: string; note?: string };
   licensing?: string;
   installation?: string[];
-  documentation?: ProductLink[];
+  /** `category` places the link on the Resources page; when omitted it is guessed from the label. */
+  documentation?: (ProductLink & { category?: ResourceCategoryId })[];
   updatePolicy?: string;
   supportNote?: string;
   /** Real, live links only (own checkout or a published marketplace listing). */

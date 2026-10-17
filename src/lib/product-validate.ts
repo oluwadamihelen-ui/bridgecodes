@@ -1,4 +1,5 @@
 import { productCategories, productStatuses, type Product } from "@/content/products";
+import { resourceCategoryIds, type ResourceCategoryId } from "@/content/resources";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const HTTPS_RE = /^https:\/\/[^\s<>"']+$/i;
@@ -98,10 +99,14 @@ export function validateProduct(input: unknown, opts: { slug?: string } = {}): P
   const supportNote = str("supportNote", "Support note", 500); if (supportNote) product.supportNote = supportNote;
   const version = str("version", "Version", 40); if (version) product.version = version;
 
-  const docs = rows("documentation").map((r) => ({ label: clean(r.label), href: clean(r.href) })).filter((d) => d.label || d.href);
-  docs.forEach((d, i) => { if (!d.label) errors.push(`Documentation link ${i + 1}: add a label.`); url(d.href, `Documentation link ${i + 1}`, true); });
+  const docs = rows("documentation").map((r) => ({ label: clean(r.label), href: clean(r.href), category: clean(r.category) })).filter((d) => d.label || d.href);
+  docs.forEach((d, i) => {
+    if (!d.label) errors.push(`Documentation link ${i + 1}: add a label.`);
+    url(d.href, `Documentation link ${i + 1}`, true);
+    if (d.category && !resourceCategoryIds.includes(d.category)) errors.push(`Documentation link ${i + 1}: choose a valid type.`);
+  });
   if (docs.length > 15) errors.push("Documentation links: at most 15.");
-  if (docs.length) product.documentation = docs;
+  if (docs.length) product.documentation = docs.map(({ category, ...d }) => ({ ...d, ...(category ? { category: category as ResourceCategoryId } : {}) }));
 
   const buys = rows("purchaseLinks").map((r) => ({ label: clean(r.label), href: clean(r.href), channel: clean(r.channel) })).filter((d) => d.label || d.href || d.channel);
   buys.forEach((b, i) => {

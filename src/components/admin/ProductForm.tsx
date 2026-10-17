@@ -3,6 +3,7 @@
 import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { productCategories, productStatuses, type Product } from "@/content/products";
+import { resourceCategories } from "@/content/resources";
 
 type Row = Record<string, string>;
 type Shot = { src: string; alt: string; width: number; height: number };
@@ -50,7 +51,7 @@ function Field({ label, hint, children, id, error }: { label: string; hint?: str
 
 function Rows({ title, hint, rows, setRows, cols, addLabel }: {
   title: string; hint?: string; rows: Row[]; setRows: (r: Row[]) => void; addLabel: string;
-  cols: { key: string; label: string; placeholder?: string; wide?: boolean }[];
+  cols: { key: string; label: string; placeholder?: string; wide?: boolean; options?: { value: string; label: string }[] }[];
 }) {
   const uid = useId();
   return (
@@ -62,8 +63,15 @@ function Rows({ title, hint, rows, setRows, cols, addLabel }: {
           {cols.map((c) => (
             <div className="field" key={c.key} style={c.wide ? { flex: 2 } : undefined}>
               <label htmlFor={`${uid}-${i}-${c.key}`}>{c.label}</label>
-              <input id={`${uid}-${i}-${c.key}`} type="text" value={row[c.key] ?? ""} placeholder={c.placeholder}
-                onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, [c.key]: e.target.value } : r)))} />
+              {c.options ? (
+                <select id={`${uid}-${i}-${c.key}`} value={row[c.key] ?? ""}
+                  onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, [c.key]: e.target.value } : r)))}>
+                  {c.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              ) : (
+                <input id={`${uid}-${i}-${c.key}`} type="text" value={row[c.key] ?? ""} placeholder={c.placeholder}
+                  onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, [c.key]: e.target.value } : r)))} />
+              )}
             </div>
           ))}
           <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRows(rows.filter((_, j) => j !== i))} aria-label={`Remove ${title} row ${i + 1}`}>Remove</button>
@@ -102,7 +110,7 @@ export function ProductForm({ product }: { product?: Product }) {
   const [pricingNote, setPricingNote] = useState(product?.pricing?.note ?? "");
   const [licensing, setLicensing] = useState(product?.licensing ?? "");
   const [installation, setInstallation] = useState(lines(product?.installation));
-  const [documentation, setDocumentation] = useState<Row[]>(product?.documentation ?? []);
+  const [documentation, setDocumentation] = useState<Row[]>((product?.documentation ?? []) as Row[]);
   const [updatePolicy, setUpdatePolicy] = useState(product?.updatePolicy ?? "");
   const [supportNote, setSupportNote] = useState(product?.supportNote ?? "");
   const [version, setVersion] = useState(product?.version ?? "");
@@ -296,8 +304,12 @@ export function ProductForm({ product }: { product?: Product }) {
         <Field id={id("sup")} label="Support note"><textarea id={id("sup")} rows={2} value={supportNote} onChange={(e) => setSupportNote(e.target.value)} /></Field>
       </fieldset>
 
-      <Rows title="Documentation links (optional)" rows={documentation} setRows={setDocumentation} addLabel="Add documentation link"
-        cols={[{ key: "label", label: "Label", placeholder: "User guide" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
+      <Rows title="Documentation links (optional)" hint="These appear on the product page and on the Resources page. Choose where each one is listed, or leave Automatic." rows={documentation} setRows={setDocumentation} addLabel="Add documentation link"
+        cols={[
+          { key: "label", label: "Label", placeholder: "User guide" },
+          { key: "category", label: "Shown under", options: [{ value: "", label: "Automatic (from the label)" }, ...resourceCategories.map((c) => ({ value: c.id, label: c.title }))] },
+          { key: "href", label: "Link", placeholder: "https://…", wide: true },
+        ]} />
 
       <fieldset className="admin__group">
         <legend>Sell on the Bridgecodes checkout page (optional)</legend>
