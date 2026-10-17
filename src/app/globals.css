@@ -87,11 +87,10 @@ main:focus { outline: none; }
 .btn-row--center { justify-content: center; }
 
 /* ───────────── Logo ───────────── */
-.logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--navy); }
-.logo:hover { color: var(--navy); }
-.logo__word { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.03em; }
-.logo__word span { font-weight: 400; opacity: 0.78; }
-.logo--dark, .logo--dark:hover { color: #fff; }
+.logo { display: inline-flex; align-items: center; text-decoration: none; }
+.logo__img { height: 38px; width: auto; }
+.site-footer .logo__img { height: 42px; }
+@media (max-width: 480px) { .logo__img { height: 32px; } }
 
 /* ───────────── Header ───────────── */
 .site-header {

@@ -21,7 +21,7 @@ export const organizationJsonLd = () => ({
   "@type": "Organization",
   name: site.brand,
   url: site.url,
-  logo: absoluteUrl("/icon"),
+  logo: absoluteUrl("/brand/logo.png"),
   description: site.description,
   parentOrganization: { "@type": "Organization", name: site.legalOwner },
   ...(site.contact.email ? { email: site.contact.email } : {}),
