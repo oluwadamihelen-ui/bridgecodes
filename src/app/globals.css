@@ -96,8 +96,13 @@ main:focus { outline: none; }
 /* ───────────── Header ───────────── */
 .site-header {
   position: sticky; top: 0; z-index: 50; height: var(--header-h);
-  background: rgb(255 255 255 / 0.9); backdrop-filter: saturate(160%) blur(12px);
   border-bottom: 1px solid var(--border);
+}
+/* The blur lives on a pseudo-element: backdrop-filter on the header itself would make it the
+   containing block for the fixed-position mobile menu and clip the menu to the header height. */
+.site-header::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: rgb(255 255 255 / 0.9); backdrop-filter: saturate(160%) blur(12px);
 }
 .site-header__inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .nav { display: flex; align-items: center; gap: 20px; }
