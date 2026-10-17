@@ -132,7 +132,7 @@ export function ProductForm({ product }: { product?: Product }) {
   async function setLogoFile(files: FileList | null) {
     if (!files?.[0]) return;
     setUploading("Uploading logo…"); setErrors([]);
-    try { const r = await uploadImage(files[0], 256); setLogo({ src: r.src, alt: `${name || "Product"} logo` }); }
+    try { const r = await uploadImage(files[0], 512); setLogo({ src: r.src, alt: `${name || "Product"} logo`, width: r.width, height: r.height }); }
     catch (e) { setErrors([e instanceof Error ? e.message : "Upload failed."]); }
     setUploading("");
   }
@@ -264,9 +264,9 @@ export function ProductForm({ product }: { product?: Product }) {
         </div>
         <Field id={id("shots")} label="Add screenshots"><input id={id("shots")} type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple onChange={(e) => { addShots(e.target.files); e.target.value = ""; }} /></Field>
         <div className="admin__thumb">
-          {logo && <>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={logo.src} alt="" width={64} /><button type="button" className="btn btn--secondary btn--sm" onClick={() => setLogo(null)}>Remove logo</button></>}
+          {logo && <>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={logo.src} alt="" style={{ height: 48, width: "auto", maxWidth: 220, objectFit: "contain" }} /><button type="button" className="btn btn--secondary btn--sm" onClick={() => setLogo(null)}>Remove logo</button></>}
         </div>
-        <Field id={id("logo")} label="Product logo (square works best)"><input id={id("logo")} type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => { setLogoFile(e.target.files); e.target.value = ""; }} /></Field>
+        <Field id={id("logo")} label="Product logo (any shape; a transparent PNG looks best)"><input id={id("logo")} type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => { setLogoFile(e.target.files); e.target.value = ""; }} /></Field>
         {uploading && <p className="hint" role="status">{uploading}</p>}
       </fieldset>
 

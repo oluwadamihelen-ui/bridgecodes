@@ -23,7 +23,7 @@ export function ProductCard({ product: p }: { product: Product }) {
     <article className="card product-card">
       <div className="product-card__head">
         {p.logo ? (
-          <Image src={p.logo.src} alt={p.logo.alt} width={44} height={44} className="product-card__logo" />
+          <Image src={p.logo.src} alt={p.logo.alt} width={p.logo.width ?? 160} height={p.logo.height ?? 44} sizes="180px" className="product-card__logo" />
         ) : (
           <span className="icon-tile" aria-hidden="true"><Icon name={categoryIcon[p.category] ?? "code"} /></span>
         )}

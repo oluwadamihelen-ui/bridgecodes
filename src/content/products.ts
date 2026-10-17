@@ -50,7 +50,8 @@ export type Product = {
   capabilities: string[];
   features?: { title: string; description: string }[];
   screenshots?: { src: string; alt: string; width: number; height: number }[];
-  logo?: { src: string; alt: string };
+  /** Natural size is optional; it only helps the browser reserve space. */
+  logo?: { src: string; alt: string; width?: number; height?: number };
   requirements?: string[];
   platforms?: string[];
   deployment?: string[];

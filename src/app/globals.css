@@ -201,7 +201,9 @@ a.card:hover, .card--hover:hover { box-shadow: var(--shadow); border-color: #c7d
 /* ───────────── Products ───────────── */
 .product-card { display: flex; flex-direction: column; }
 .product-card__head { display: flex; justify-content: space-between; align-items: flex-start; }
-.product-card__logo { border-radius: 10px; margin-bottom: 14px; }
+/* Logos keep their own proportions: fixed height, automatic width, never stretched or cropped. */
+.product-card__logo { height: 44px; width: auto; max-width: 170px; object-fit: contain; object-position: left center; margin-bottom: 14px; }
+.product-hero-logo { height: 56px; width: auto; max-width: 240px; object-fit: contain; object-position: left center; margin-bottom: 16px; }
 .product-card__cat { font-size: 0.8rem; font-weight: 600; color: var(--blue-600); margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.04em; }
 .product-card h3 a { color: var(--navy); text-decoration: none; }
 .product-card h3 a:hover { color: var(--blue-600); }

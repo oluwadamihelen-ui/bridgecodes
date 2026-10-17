@@ -75,9 +75,11 @@ export function validateProduct(input: unknown, opts: { slug?: string } = {}): P
 
   const logoSrc = clean(isObj(input.logo) ? input.logo.src : "");
   if (logoSrc) {
-    const alt = clean((input.logo as Raw).alt) || `${name} logo`;
+    const l = input.logo as Raw;
+    const alt = clean(l.alt) || `${name} logo`;
     if (!IMG_RE.test(logoSrc)) errors.push("Logo: invalid image.");
-    product.logo = { src: logoSrc, alt };
+    const w = Math.round(Number(l.width)), h = Math.round(Number(l.height));
+    product.logo = { src: logoSrc, alt, ...(w > 0 && w <= 4000 && h > 0 && h <= 4000 ? { width: w, height: h } : {}) };
   }
 
   const opt = (key: keyof Product, v: string[]) => { if (v.length) (product as Record<string, unknown>)[key] = v; };

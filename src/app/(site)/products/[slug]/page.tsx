@@ -68,6 +68,9 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
         intro={p.shortDescription}
         crumbs={[{ name: "Products", path: "/products" }, { name: p.name, path: `/products/${p.slug}` }]}
       >
+        {p.logo && (
+          <Image src={p.logo.src} alt={p.logo.alt} width={p.logo.width ?? 200} height={p.logo.height ?? 56} sizes="240px" priority className="product-hero-logo" />
+        )}
         <p style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <StatusBadge status={p.status} /> <span className="muted">{p.category}</span>
         </p>
