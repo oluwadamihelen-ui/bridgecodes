@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Product } from "@/content/products";
 import { StatusBadge } from "./StatusBadge";
 import { Icon } from "./Icon";
+import { isInternalHref } from "@/lib/links";
 
 const categoryIcon: Record<string, string> = {
   "Business Management Software": "building",
@@ -35,7 +36,9 @@ export function ProductCard({ product: p }: { product: Product }) {
       <p className="product-card__aud"><strong>For:</strong> {p.audience.join(", ")}</p>
       <div className="product-card__actions">
         <Link className="btn btn--secondary btn--sm" href={`/products/${p.slug}`}>View details</Link>
-        {buy && <a className="btn btn--primary btn--sm" href={buy.href} target="_blank" rel="noopener noreferrer">{buy.label}</a>}
+        {buy && (isInternalHref(buy.href)
+          ? <Link className="btn btn--primary btn--sm" href={buy.href}>{buy.label}</Link>
+          : <a className="btn btn--primary btn--sm" href={buy.href} target="_blank" rel="noopener noreferrer">{buy.label}</a>)}
       </div>
     </article>
   );

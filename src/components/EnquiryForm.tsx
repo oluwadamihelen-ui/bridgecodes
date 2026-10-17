@@ -19,9 +19,12 @@ declare global {
 export function EnquiryForm({
   kind,
   turnstileSiteKey,
+  fixed,
 }: {
   kind: EnquiryKind;
   turnstileSiteKey?: string | null;
+  /** Values set by the page (e.g. the product). Shown read-only, or hidden for hidden fields. */
+  fixed?: Partial<Record<FieldName, string>>;
 }) {
   const spec = formSpecs[kind];
   const uid = useId();
@@ -102,7 +105,7 @@ export function EnquiryForm({
     return (
       <div className="notice notice--success" role="status" tabIndex={-1} ref={statusRef}>
         <h3>Thank you — your message has been sent.</h3>
-        <p>We have received your {kind === "contact" ? "enquiry" : kind === "bug" ? "bug report" : "support request"} and will reply by email.</p>
+        <p>We have received your {{ contact: "enquiry", bug: "bug report", support: "support request", purchase: "purchase enquiry", demo: "demo request" }[kind]} and will reply by email.</p>
         {state.reference && <p className="muted">Reference: <code>{state.reference}</code></p>}
         <button type="button" className="btn btn--secondary btn--sm" onClick={() => setState({ phase: "idle" })}>Send another</button>
       </div>
@@ -119,6 +122,15 @@ export function EnquiryForm({
 
       {spec.fields.map((f) => {
         const id = `${uid}-${f.name}`;
+        if (f.type === "hidden") return <input key={f.name} type="hidden" name={f.name} value={fixed?.[f.name] ?? ""} />;
+        if (fixed?.[f.name] !== undefined) {
+          return (
+            <div className="field" key={f.name}>
+              <label htmlFor={id}>{f.label}</label>
+              <input id={id} name={f.name} type="text" readOnly defaultValue={fixed[f.name]} />
+            </div>
+          );
+        }
         const err = errors[f.name];
         const describedBy = [f.hint ? `${id}-hint` : "", err ? `${id}-err` : ""].filter(Boolean).join(" ") || undefined;
         const common = {

@@ -9,6 +9,7 @@ import { Button } from "@/components/Button";
 import { getProduct, getProducts } from "@/lib/catalogue";
 import { absoluteUrl, site } from "@/config/site";
 import { pageMetadata } from "@/lib/seo";
+import { isInternalHref } from "@/lib/links";
 
 type Params = { slug: string };
 
@@ -154,11 +155,11 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
               <div><dt>Owner</dt><dd>{site.legalOwner}</dd></div>
             </dl>
             {p.purchaseLinks?.map((l) => (
-              <Button key={l.href} href={l.href} external>{l.label} <span className="sr-only">({l.channel})</span></Button>
+              <Button key={l.href} href={l.href} external={!isInternalHref(l.href)}>{l.label} <span className="sr-only">({l.channel})</span></Button>
             ))}
-            {p.trialLink && <Button href={p.trialLink.href} variant="secondary" external>{p.trialLink.label}</Button>}
+            {p.trialLink && <Button href={p.trialLink.href} variant="secondary" external={!isInternalHref(p.trialLink.href)}>{p.trialLink.label}</Button>}
             {!p.purchaseLinks?.length && (
-              <Button href="/contact">
+              <Button href={`/products/${p.slug}/purchase`}>
                 {p.status === "available" ? "Enquire about this product" : "Ask about availability"}
               </Button>
             )}

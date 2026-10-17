@@ -44,6 +44,8 @@ Nothing is invented: any value not configured is hidden, and unresolved legal de
 
 **Locally:** put `ADMIN_PASSWORD=some-long-password` in `.env.local`, run `npm run dev`, open `/admin`. Data is saved to `./data` (git-ignored).
 
+**Purchase and demo pages.** Every product automatically has two working pages: `/products/<slug>/purchase` (purchase enquiry; for products not yet available it becomes "ask about availability") and `/products/<slug>/demo` (demo request). Their forms use the same backend as the contact form, so submissions arrive in the same inbox with the product pre-filled. In the admin, the buttons **Use the Bridgecodes purchase-enquiry page** and **Use the Bridgecodes demo-request page** fill the links for you. These are enquiry pages, not an online checkout: to take payments, paste a real checkout or marketplace link into "Where to buy" instead.
+
 Notes
 - Until `ADMIN_PASSWORD` is set, `/admin` returns 404 (it does not exist). The admin is excluded from search engines and the sitemap.
 - Login: signed HttpOnly SameSite=Strict cookie (8 h), rate-limited; all changes are validated on the server; uploads are checked by file contents and compressed in the browser (≤ 700 KB).

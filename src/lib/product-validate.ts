@@ -104,7 +104,7 @@ export function validateProduct(input: unknown, opts: { slug?: string } = {}): P
   buys.forEach((b, i) => {
     if (!b.label) errors.push(`Purchase link ${i + 1}: add button text.`);
     if (!b.channel) errors.push(`Purchase link ${i + 1}: say where it is sold (e.g. "Bridgecodes website").`);
-    url(b.href, `Purchase link ${i + 1}`);
+    url(b.href, `Purchase link ${i + 1}`, true);
   });
   if (buys.length > 6) errors.push("Purchase links: at most 6.");
   if (buys.length) product.purchaseLinks = buys;
@@ -113,7 +113,7 @@ export function validateProduct(input: unknown, opts: { slug?: string } = {}): P
   const trialHref = isObj(input.trialLink) ? clean(input.trialLink.href) : "";
   if (trialLabel || trialHref) {
     if (!trialLabel) errors.push("Trial link: add button text.");
-    url(trialHref, "Trial link");
+    url(trialHref, "Trial link", true);
     product.trialLink = { label: trialLabel, href: trialHref };
   }
 

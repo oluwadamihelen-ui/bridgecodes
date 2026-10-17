@@ -14,6 +14,8 @@ const kindLabel: Record<EnquiryKind, string> = {
   contact: "Contact enquiry",
   support: "Support request",
   bug: "Bug report",
+  purchase: "Purchase enquiry",
+  demo: "Demo request",
 };
 
 const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").slice(0, 200);
@@ -31,7 +33,7 @@ async function sendEmail(id: string, e: Enquiry): Promise<void> {
   const apiKey = env("RESEND_API_KEY")!;
   const from = env("ENQUIRY_FROM_EMAIL")!;
   const to =
-    e.kind !== "contact" && env("SUPPORT_TO_EMAIL") ? env("SUPPORT_TO_EMAIL")! : env("ENQUIRY_TO_EMAIL")!;
+    (e.kind === "support" || e.kind === "bug") && env("SUPPORT_TO_EMAIL") ? env("SUPPORT_TO_EMAIL")! : env("ENQUIRY_TO_EMAIL")!;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

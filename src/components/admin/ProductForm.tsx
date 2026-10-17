@@ -45,8 +45,8 @@ function Field({ label, hint, children, id }: { label: string; hint?: string; ch
   );
 }
 
-function Rows({ title, hint, rows, setRows, cols, addLabel }: {
-  title: string; hint?: string; rows: Row[]; setRows: (r: Row[]) => void; addLabel: string;
+function Rows({ title, hint, rows, setRows, cols, addLabel, extra }: {
+  title: string; hint?: string; rows: Row[]; setRows: (r: Row[]) => void; addLabel: string; extra?: React.ReactNode;
   cols: { key: string; label: string; placeholder?: string; wide?: boolean }[];
 }) {
   const uid = useId();
@@ -66,7 +66,10 @@ function Rows({ title, hint, rows, setRows, cols, addLabel }: {
           <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRows(rows.filter((_, j) => j !== i))} aria-label={`Remove ${title} row ${i + 1}`}>Remove</button>
         </div>
       ))}
-      <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRows([...rows, {}])}>{addLabel}</button>
+      <div className="btn-row">
+        <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRows([...rows, {}])}>{addLabel}</button>
+        {extra}
+      </div>
     </fieldset>
   );
 }
@@ -265,16 +268,21 @@ export function ProductForm({ product }: { product?: Product }) {
       <Rows title="Documentation links (optional)" rows={documentation} setRows={setDocumentation} addLabel="Add documentation link"
         cols={[{ key: "label", label: "Label", placeholder: "User guide" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
 
-      <Rows title="Where to buy (optional)" hint="Add a link ONLY when it is live — your own checkout or a real marketplace listing. Until then, visitors are shown an enquiry button."
+      <Rows title="Where to buy (optional)" hint="Add a link ONLY when it is live: a real marketplace listing, your own checkout, or the built-in purchase-enquiry page below. With no link, visitors are shown an enquiry button that opens that same page."
         rows={purchaseLinks} setRows={setPurchaseLinks} addLabel="Add purchase link"
+        extra={<button type="button" className="btn btn--secondary btn--sm" disabled={!slug}
+          onClick={() => setPurchaseLinks([...purchaseLinks, { label: "Enquire to purchase", channel: "Bridgecodes website", href: `/products/${slug}/purchase` }])}>
+          Use the Bridgecodes purchase-enquiry page</button>}
         cols={[{ key: "label", label: "Button text", placeholder: "Buy now" }, { key: "channel", label: "Sold on", placeholder: "Bridgecodes website" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
 
       <fieldset className="admin__group">
         <legend>Trial or demo (optional)</legend>
         <div className="admin__cols">
           <Field id={id("tl")} label="Button text"><input id={id("tl")} type="text" value={trialLabel} onChange={(e) => setTrialLabel(e.target.value)} placeholder="Try the demo" /></Field>
-          <Field id={id("th")} label="Link"><input id={id("th")} type="text" value={trialHref} onChange={(e) => setTrialHref(e.target.value)} placeholder="https://…" /></Field>
+          <Field id={id("th")} label="Link" hint="A full https:// link, or a page on this site such as /products/your-product/demo."><input id={id("th")} type="text" value={trialHref} onChange={(e) => setTrialHref(e.target.value)} placeholder="https://…" /></Field>
         </div>
+        <div><button type="button" className="btn btn--secondary btn--sm" disabled={!slug}
+          onClick={() => { setTrialLabel("Request a demo"); setTrialHref(`/products/${slug}/demo`); }}>Use the Bridgecodes demo-request page</button></div>
       </fieldset>
 
       <div className="btn-row">
