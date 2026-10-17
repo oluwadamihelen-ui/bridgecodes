@@ -8,6 +8,8 @@ type Row = Record<string, string>;
 type Shot = { src: string; alt: string; width: number; height: number };
 
 const lines = (v?: string[]) => (v ?? []).join("\n");
+/** Keeps what is typed valid as a web address: lowercase, hyphens for spaces/underscores, no symbols. */
+const liveSlug = (s: string) => s.toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-{2,}/g, "-").replace(/^-+/, "").slice(0, 60);
 const slugify = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
 
 /** Resize to maxDim and re-encode as WebP (JPEG fallback) so uploads stay small. */
@@ -140,7 +142,7 @@ export function ProductForm({ product }: { product?: Product }) {
     setErrors([]); setFieldErrors({});
     const missing: Record<string, string> = {};
     if (!name.trim()) missing.name = "Enter the product name.";
-    if (!slug.trim()) missing.slug = "Enter a web address (it is filled in automatically from the name).";
+    if (!slug.replace(/-+$/, "")) missing.slug = "Enter a web address using English letters or numbers, for example my-product (it is filled in automatically from the name).";
     if (!category) missing.category = "Choose a category.";
     if (!shortDescription.trim()) missing.short = "Add a short description.";
     if (!overview.trim()) missing.overview = "Add an overview.";
@@ -156,8 +158,10 @@ export function ProductForm({ product }: { product?: Product }) {
       return;
     }
     setBusy(true);
+    const cleanSlug = slug.replace(/-+$/, "");
+    setSlug(cleanSlug);
     const payload = {
-      slug, name, published, status, category, shortDescription, overview,
+      slug: cleanSlug, name, published, status, category, shortDescription, overview,
       audience: split(audience), capabilities: split(capabilities),
       features, screenshots: shots, logo: logo ?? undefined,
       requirements: split(requirements), platforms: split(platforms), deployment: split(deployment),
@@ -199,7 +203,8 @@ export function ProductForm({ product }: { product?: Product }) {
         </Field>
         <Field id={id("slug")} label="Web address *" error={fieldErrors.slug} hint={editing ? "The address cannot be changed after the product is created." : `Appears as /products/${slug || "your-product"}. Letters, numbers and hyphens.`}>
           <input id={id("slug")} type="text" value={slug} maxLength={60} required readOnly={editing}
-            onChange={(e) => { setSlugTouched(true); setSlug(e.target.value.toLowerCase()); }} />
+            onChange={(e) => { setSlugTouched(true); setSlug(liveSlug(e.target.value)); }}
+            onBlur={() => setSlug((v) => v.replace(/-+$/, ""))} />
         </Field>
         <div className="admin__cols">
           <Field id={id("category")} label="Category *" error={fieldErrors.category}>

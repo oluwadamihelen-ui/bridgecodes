@@ -35,8 +35,9 @@ export function validateProduct(input: unknown, opts: { slug?: string } = {}): P
   };
   const rows = (key: string): Raw[] => (Array.isArray(input[key]) ? input[key].filter(isObj) : []);
 
-  const slug = opts.slug ?? clean(input.slug).toLowerCase();
-  if (!SLUG_RE.test(slug) || slug.length > 60) errors.push("Web address (slug): use lowercase letters, numbers and hyphens only, up to 60 characters.");
+  // Be forgiving: "My Product_2!" becomes "my-product-2".
+  const slug = opts.slug ?? clean(input.slug).toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/-{2,}/g, "-").replace(/^-+|-+$/g, "");
+  if (!SLUG_RE.test(slug) || slug.length > 60) errors.push("Web address: type something like my-product (English letters, numbers and hyphens, up to 60 characters).");
 
   const name = str("name", "Product name", 80, true);
   const category = clean(input.category);
