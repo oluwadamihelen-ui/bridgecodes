@@ -45,8 +45,8 @@ function Field({ label, hint, children, id }: { label: string; hint?: string; ch
   );
 }
 
-function Rows({ title, hint, rows, setRows, cols, addLabel, extra }: {
-  title: string; hint?: string; rows: Row[]; setRows: (r: Row[]) => void; addLabel: string; extra?: React.ReactNode;
+function Rows({ title, hint, rows, setRows, cols, addLabel }: {
+  title: string; hint?: string; rows: Row[]; setRows: (r: Row[]) => void; addLabel: string;
   cols: { key: string; label: string; placeholder?: string; wide?: boolean }[];
 }) {
   const uid = useId();
@@ -68,7 +68,6 @@ function Rows({ title, hint, rows, setRows, cols, addLabel, extra }: {
       ))}
       <div className="btn-row">
         <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRows([...rows, {}])}>{addLabel}</button>
-        {extra}
       </div>
     </fieldset>
   );
@@ -105,6 +104,8 @@ export function ProductForm({ product }: { product?: Product }) {
   const [supportNote, setSupportNote] = useState(product?.supportNote ?? "");
   const [version, setVersion] = useState(product?.version ?? "");
   const [purchaseLinks, setPurchaseLinks] = useState<Row[]>(product?.purchaseLinks ?? []);
+  const [paymentHref, setPaymentHref] = useState(product?.paymentLink?.href ?? "");
+  const [paymentProvider, setPaymentProvider] = useState(product?.paymentLink?.provider ?? "");
   const [trialLabel, setTrialLabel] = useState(product?.trialLink?.label ?? "");
   const [trialHref, setTrialHref] = useState(product?.trialLink?.href ?? "");
 
@@ -141,7 +142,7 @@ export function ProductForm({ product }: { product?: Product }) {
       features, screenshots: shots, logo: logo ?? undefined,
       requirements: split(requirements), platforms: split(platforms), deployment: split(deployment),
       pricingDisplay, pricingNote, licensing, installation: split(installation), documentation,
-      updatePolicy, supportNote, version, purchaseLinks, trialLink: { label: trialLabel, href: trialHref },
+      updatePolicy, supportNote, version, purchaseLinks, paymentHref, paymentProvider, trialLink: { label: trialLabel, href: trialHref },
     };
     try {
       const res = await fetch(editing ? `/api/admin/products/${encodeURIComponent(product!.slug)}` : "/api/admin/products", {
@@ -268,21 +269,34 @@ export function ProductForm({ product }: { product?: Product }) {
       <Rows title="Documentation links (optional)" rows={documentation} setRows={setDocumentation} addLabel="Add documentation link"
         cols={[{ key: "label", label: "Label", placeholder: "User guide" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
 
-      <Rows title="Where to buy (optional)" hint="Add a link ONLY when it is live: a real marketplace listing, your own checkout, or the built-in purchase-enquiry page below. With no link, visitors are shown an enquiry button that opens that same page."
+      <fieldset className="admin__group">
+        <legend>Sell on the Bridgecodes checkout page (optional)</legend>
+        <p className="hint" style={{ marginTop: 0 }}>
+          Your website has a checkout page for this product at <code>/products/{slug || "your-product"}/checkout</code>. Buyers review the order, accept the terms,
+          then pay on your payment provider&apos;s secure page, so no card details touch this website. To enable it, create a <strong>payment link</strong> for
+          this product in Stripe, Paystack, Flutterwave or a similar provider and paste it here. Only works while the status is <strong>Available</strong>.
+        </p>
+        <div className="admin__cols">
+          <Field id={id("payhref")} label="Payment link" hint="Must start with https://">
+            <input id={id("payhref")} type="text" value={paymentHref} maxLength={500} onChange={(e) => setPaymentHref(e.target.value)} placeholder="https://buy.stripe.com/…" />
+          </Field>
+          <Field id={id("payprov")} label="Provider name (shown to buyers)">
+            <input id={id("payprov")} type="text" value={paymentProvider} maxLength={40} onChange={(e) => setPaymentProvider(e.target.value)} placeholder="Stripe" />
+          </Field>
+        </div>
+      </fieldset>
+
+      <Rows title="Other places to buy (optional)" hint="For example a marketplace listing. Add a link ONLY when the listing is live. If there is no checkout and no link, visitors see an enquiry button instead."
         rows={purchaseLinks} setRows={setPurchaseLinks} addLabel="Add purchase link"
-        extra={<button type="button" className="btn btn--secondary btn--sm" disabled={!slug}
-          onClick={() => setPurchaseLinks([...purchaseLinks, { label: "Enquire to purchase", channel: "Bridgecodes website", href: `/products/${slug}/purchase` }])}>
-          Use the Bridgecodes purchase-enquiry page</button>}
-        cols={[{ key: "label", label: "Button text", placeholder: "Buy now" }, { key: "channel", label: "Sold on", placeholder: "Bridgecodes website" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
+        cols={[{ key: "label", label: "Button text", placeholder: "Buy on Envato" }, { key: "channel", label: "Sold on", placeholder: "Envato Market" }, { key: "href", label: "Link", placeholder: "https://…", wide: true }]} />
 
       <fieldset className="admin__group">
-        <legend>Trial or demo (optional)</legend>
+        <legend>Live demo (optional)</legend>
+        <p className="hint" style={{ marginTop: 0 }}>Link to the real, working demo or trial of this product. Visitors get a button that opens it. Leave blank if there is no demo yet.</p>
         <div className="admin__cols">
-          <Field id={id("tl")} label="Button text"><input id={id("tl")} type="text" value={trialLabel} onChange={(e) => setTrialLabel(e.target.value)} placeholder="Try the demo" /></Field>
-          <Field id={id("th")} label="Link" hint="A full https:// link, or a page on this site such as /products/your-product/demo."><input id={id("th")} type="text" value={trialHref} onChange={(e) => setTrialHref(e.target.value)} placeholder="https://…" /></Field>
+          <Field id={id("tl")} label="Button text"><input id={id("tl")} type="text" value={trialLabel} onChange={(e) => setTrialLabel(e.target.value)} placeholder="View live demo" /></Field>
+          <Field id={id("th")} label="Demo link" hint="Must start with https://"><input id={id("th")} type="text" value={trialHref} onChange={(e) => setTrialHref(e.target.value)} placeholder="https://demo.example.com" /></Field>
         </div>
-        <div><button type="button" className="btn btn--secondary btn--sm" disabled={!slug}
-          onClick={() => { setTrialLabel("Request a demo"); setTrialHref(`/products/${slug}/demo`); }}>Use the Bridgecodes demo-request page</button></div>
       </fieldset>
 
       <div className="btn-row">

@@ -109,11 +109,18 @@ export function validateProduct(input: unknown, opts: { slug?: string } = {}): P
   if (buys.length > 6) errors.push("Purchase links: at most 6.");
   if (buys.length) product.purchaseLinks = buys;
 
+  const payHref = str("paymentHref", "Payment link", 500);
+  const payProvider = str("paymentProvider", "Payment provider", 40);
+  if (payHref) {
+    url(payHref, "Payment link");
+    product.paymentLink = { href: payHref, ...(payProvider ? { provider: payProvider } : {}) };
+  }
+
   const trialLabel = isObj(input.trialLink) ? clean(input.trialLink.label) : "";
   const trialHref = isObj(input.trialLink) ? clean(input.trialLink.href) : "";
   if (trialLabel || trialHref) {
-    if (!trialLabel) errors.push("Trial link: add button text.");
-    url(trialHref, "Trial link", true);
+    if (!trialLabel) errors.push("Demo link: add button text.");
+    url(trialHref, "Demo link", true);
     product.trialLink = { label: trialLabel, href: trialHref };
   }
 

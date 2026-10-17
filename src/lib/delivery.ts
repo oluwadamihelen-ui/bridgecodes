@@ -15,7 +15,6 @@ const kindLabel: Record<EnquiryKind, string> = {
   support: "Support request",
   bug: "Bug report",
   purchase: "Purchase enquiry",
-  demo: "Demo request",
 };
 
 const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").slice(0, 200);

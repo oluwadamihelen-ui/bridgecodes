@@ -63,7 +63,14 @@ export type Product = {
   supportNote?: string;
   /** Real, live links only (own checkout or a published marketplace listing). */
   purchaseLinks?: (ProductLink & { channel: string })[];
+  /** Link to the live demo or trial of the product itself. */
   trialLink?: ProductLink;
+  /**
+   * Hosted payment link from a payment provider (Stripe, Paystack, Flutterwave...).
+   * When set, the product is sold on the Bridgecodes checkout page (/products/<slug>/checkout),
+   * which sends the buyer to this link to pay. No card data touches this website.
+   */
+  paymentLink?: { href: string; provider?: string };
   version?: string;
 };
 

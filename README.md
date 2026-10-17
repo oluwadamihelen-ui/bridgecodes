@@ -44,7 +44,11 @@ Nothing is invented: any value not configured is hidden, and unresolved legal de
 
 **Locally:** put `ADMIN_PASSWORD=some-long-password` in `.env.local`, run `npm run dev`, open `/admin`. Data is saved to `./data` (git-ignored).
 
-**Purchase and demo pages.** Every product automatically has two working pages: `/products/<slug>/purchase` (purchase enquiry; for products not yet available it becomes "ask about availability") and `/products/<slug>/demo` (demo request). Their forms use the same backend as the contact form, so submissions arrive in the same inbox with the product pre-filled. In the admin, the buttons **Use the Bridgecodes purchase-enquiry page** and **Use the Bridgecodes demo-request page** fill the links for you. These are enquiry pages, not an online checkout: to take payments, paste a real checkout or marketplace link into "Where to buy" instead.
+**Checkout, demo and purchase pages.**
+- **Checkout page** (`/products/<slug>/checkout`): paste a hosted *payment link* (Stripe Payment Link, Paystack/Flutterwave payment page, etc.) in the product's "Sell on the Bridgecodes checkout page" box. Buyers see an order summary, accept the Terms, License Agreement and Refund Policy, then continue to the provider's secure payment page. No card data touches this website and no payment keys are needed. The product page and card show a **Buy now** button, and it only works while the status is **Available**.
+- **Purchase enquiry** (`/products/<slug>/purchase`): used automatically when a product has no checkout or isn't available yet. The form emails the same inbox as the contact form with the product pre-filled.
+- **Live demo:** the "Live demo" fields take a link to the real demo of the product; visitors get a button that opens it.
+- **Other places to buy:** add marketplace listings (live links only) under "Other places to buy".
 
 Notes
 - Until `ADMIN_PASSWORD` is set, `/admin` returns 404 (it does not exist). The admin is excluded from search engines and the sitemap.

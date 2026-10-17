@@ -105,7 +105,7 @@ export function EnquiryForm({
     return (
       <div className="notice notice--success" role="status" tabIndex={-1} ref={statusRef}>
         <h3>Thank you — your message has been sent.</h3>
-        <p>We have received your {{ contact: "enquiry", bug: "bug report", support: "support request", purchase: "purchase enquiry", demo: "demo request" }[kind]} and will reply by email.</p>
+        <p>We have received your {{ contact: "enquiry", bug: "bug report", support: "support request", purchase: "purchase enquiry" }[kind]} and will reply by email.</p>
         {state.reference && <p className="muted">Reference: <code>{state.reference}</code></p>}
         <button type="button" className="btn btn--secondary btn--sm" onClick={() => setState({ phase: "idle" })}>Send another</button>
       </div>

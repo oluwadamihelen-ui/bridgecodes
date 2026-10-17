@@ -1,6 +1,6 @@
 /** Shared (client + server) definition of the enquiry forms. Server re-validates everything. */
 
-export const enquiryKinds = ["contact", "support", "bug", "purchase", "demo"] as const;
+export const enquiryKinds = ["contact", "support", "bug", "purchase"] as const;
 export type EnquiryKind = (typeof enquiryKinds)[number];
 
 export const contactTypes = [
@@ -62,18 +62,6 @@ export const formSpecs: Record<EnquiryKind, { title: string; submitLabel: string
       { name: "product", label: "Product", required: true, max: 120, type: "text" },
       { name: "subject", label: "Subject", required: true, max: 150, type: "hidden" },
       { name: "message", label: "What do you need?", required: false, max: 3000, type: "textarea", rows: 5, hint: "For example: how many users or sites, whether you need a particular licence, and your timeline." },
-    ],
-  },
-  demo: {
-    title: "Your details",
-    submitLabel: "Send demo request",
-    fields: [
-      base.name,
-      { ...base.email, label: "Email" },
-      base.company,
-      { name: "product", label: "Product", required: true, max: 120, type: "text" },
-      { name: "subject", label: "Subject", required: true, max: 150, type: "hidden" },
-      { name: "message", label: "What would you like to see or try?", required: false, max: 3000, type: "textarea", rows: 5 },
     ],
   },
   contact: {

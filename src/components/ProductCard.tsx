@@ -16,7 +16,9 @@ const categoryIcon: Record<string, string> = {
 };
 
 export function ProductCard({ product: p }: { product: Product }) {
-  const buy = p.purchaseLinks?.[0];
+  const buy = p.paymentLink && p.status === "available"
+    ? { label: "Buy now", href: `/products/${p.slug}/checkout` }
+    : p.purchaseLinks?.[0];
   return (
     <article className="card product-card">
       <div className="product-card__head">

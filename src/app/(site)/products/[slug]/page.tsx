@@ -154,11 +154,12 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
               <div><dt>Price</dt><dd>{p.pricing?.display ?? "Contact us"}</dd></div>
               <div><dt>Owner</dt><dd>{site.legalOwner}</dd></div>
             </dl>
+            {p.paymentLink && p.status === "available" && <Button href={`/products/${p.slug}/checkout`}>Buy now</Button>}
             {p.purchaseLinks?.map((l) => (
               <Button key={l.href} href={l.href} external={!isInternalHref(l.href)}>{l.label} <span className="sr-only">({l.channel})</span></Button>
             ))}
             {p.trialLink && <Button href={p.trialLink.href} variant="secondary" external={!isInternalHref(p.trialLink.href)}>{p.trialLink.label}</Button>}
-            {!p.purchaseLinks?.length && (
+            {!p.purchaseLinks?.length && !(p.paymentLink && p.status === "available") && (
               <Button href={`/products/${p.slug}/purchase`}>
                 {p.status === "available" ? "Enquire about this product" : "Ask about availability"}
               </Button>

@@ -27,5 +27,5 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 export default async function Page({ params }: { params: Promise<Params> }) {
   const p = await getProduct((await params).slug);
   if (!p) notFound();
-  return <ProductEnquiryPage product={p} kind="purchase" />;
+  return <ProductEnquiryPage product={p} />;
 }
