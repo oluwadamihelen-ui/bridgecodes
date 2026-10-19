@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DeleteButton } from "@/components/admin/DeleteButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { SeedBanner } from "@/components/admin/SeedBanner";
+import { pendingSeeds } from "@/lib/admin-seed";
 import { isAdmin } from "@/lib/admin-auth";
 import { getAllProducts } from "@/lib/catalogue";
 import { getStore } from "@/lib/store";
@@ -13,6 +15,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
   const { saved } = await searchParams;
   const store = getStore();
   const products = await getAllProducts();
+  const seeds = await pendingSeeds();
 
   return (
     <>
@@ -20,6 +23,8 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
         <h1 style={{ fontSize: "1.8rem", margin: 0 }}>Products</h1>
         {store && <Link href="/admin/products/new" className="btn btn--primary">Add product</Link>}
       </div>
+
+      {seeds.length > 0 && <SeedBanner names={seeds.map((p) => p.name)} />}
 
       {saved && <div className="notice notice--success" role="status">Saved. The website will show the change within moments.</div>}
 

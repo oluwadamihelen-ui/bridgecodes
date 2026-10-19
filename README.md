@@ -44,6 +44,8 @@ Nothing is invented: any value not configured is hidden, and unresolved legal de
 
 **Locally:** put `ADMIN_PASSWORD=some-long-password` in `.env.local`, run `npm run dev`, open `/admin`. Data is saved to `./data` (git-ignored).
 
+**Starter drafts.** The first time you open `/admin` with storage connected, a banner offers to import the draft product listings in `src/content/seed-products.ts` (written from the owner's own projects). They are added as hidden drafts with no prices, logos or screenshots, never overwrite an existing product, and appear publicly only when you publish them.
+
 **Checkout, demo and purchase pages.**
 - **Checkout page** (`/products/<slug>/checkout`): paste a hosted *payment link* (Stripe Payment Link, Paystack/Flutterwave payment page, etc.) in the product's "Sell on the Bridgecodes checkout page" box. Buyers see an order summary, accept the Terms, License Agreement and Refund Policy, then continue to the provider's secure payment page. No card data touches this website and no payment keys are needed. The product page and card show a **Buy now** button, and it only works while the status is **Available**.
 - **Purchase enquiry** (`/products/<slug>/purchase`): used automatically when a product has no checkout or isn't available yet. The form emails the same inbox as the contact form with the product pre-filled.
