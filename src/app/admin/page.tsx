@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { DeleteButton } from "@/components/admin/DeleteButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SeedBanner } from "@/components/admin/SeedBanner";
-import { pendingSeeds } from "@/lib/admin-seed";
+import { pendingFills, pendingSeeds } from "@/lib/admin-seed";
 import { isAdmin } from "@/lib/admin-auth";
 import { getAllProducts } from "@/lib/catalogue";
 import { getStore } from "@/lib/store";
@@ -16,6 +16,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
   const store = getStore();
   const products = await getAllProducts();
   const seeds = await pendingSeeds();
+  const fills = seeds.length ? [] : await pendingFills();
 
   return (
     <>
@@ -25,6 +26,7 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
       </div>
 
       {seeds.length > 0 && <SeedBanner names={seeds.map((p) => p.name)} />}
+      {fills.length > 0 && <SeedBanner mode="fill" names={fills.map((p) => p.name)} />}
 
       {saved && <div className="notice notice--success" role="status">Saved. The website will show the change within moments.</div>}
 

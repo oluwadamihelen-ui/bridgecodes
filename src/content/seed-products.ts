@@ -8,7 +8,7 @@
  */
 import type { Product } from "./products";
 
-export const seedProducts: Product[] = [
+const drafts: Product[] = [
   {
     slug: "laundrix",
     name: "Laundrix",
@@ -353,3 +353,27 @@ export const seedProducts: Product[] = [
     deployment: ["Docker (web and worker images included)", "Separate background worker process"],
   },
 ];
+
+/**
+ * Licensing, updates and support wording, kept deliberately non-committal: it states how things work and
+ * what is confirmed in writing, without promising response times, update durations or licence terms that
+ * have not been decided. Laundrix keeps its own licence summary (from its draft licence file).
+ */
+const policies = (p: Product): Pick<Product, "licensing" | "updatePolicy" | "supportNote"> => {
+  const n = p.name;
+  return {
+    licensing: `Ownership of ${n} remains with Numi Innovations Ltd. The type of licence, permitted use and whether source code is delivered are confirmed in writing before purchase; nothing is granted until agreed. See the License Agreement, or contact us to discuss your use case.`,
+    updatePolicy:
+      p.status === "available"
+        ? `Releases use semantic versioning and are listed in the changelog. After each update, apply database migrations (npx prisma migrate deploy). How long updates are included with a licence is confirmed in writing at purchase.`
+        : p.status === "beta"
+          ? `${n} is a pre-1.0 release, so behaviour and the database schema may change between versions. Update notes are published on the Resources page when available. How long updates are included with a licence is confirmed in writing at purchase.`
+          : `${n} is in development and has no committed update schedule. Update and maintenance terms are confirmed in writing before any purchase.`,
+    supportNote:
+      p.status === "in-development"
+        ? `${n} is still in development and is not yet supported for production use. Questions are welcome through the Support Center.`
+        : `Help with installing and configuring ${n} is available through the Support Center. Please include the product name, version, your environment and any error messages. Response times are not guaranteed unless agreed in writing.`,
+  };
+};
+
+export const seedProducts: Product[] = drafts.map((p) => ({ ...policies(p), ...p }));
