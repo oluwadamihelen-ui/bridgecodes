@@ -297,7 +297,7 @@ export function ProductForm({ product }: { product?: Product }) {
         <p className="hint" style={{ marginTop: 0 }}>Leave the price blank until it is confirmed — the page will say “Contact us”.</p>
         <div className="admin__cols">
           <Field id={id("price")} label="Price (shown exactly as typed)"><input id={id("price")} type="text" value={pricingDisplay} maxLength={80} onChange={(e) => setPricingDisplay(e.target.value)} placeholder="From $29/month" /></Field>
-          <Field id={id("pnote")} label="Price note"><input id={id("pnote")} type="text" value={pricingNote} maxLength={200} onChange={(e) => setPricingNote(e.target.value)} /></Field>
+          <Field id={id("pnote")} label="Price note" hint="Shown under the price. With no price entered, visitors see “Contact us for pricing” followed by this note."><input id={id("pnote")} type="text" value={pricingNote} maxLength={200} onChange={(e) => setPricingNote(e.target.value)} /></Field>
         </div>
         <Field id={id("lic")} label="Licensing"><textarea id={id("lic")} rows={2} value={licensing} onChange={(e) => setLicensing(e.target.value)} /></Field>
         <Field id={id("upd")} label="Updates and maintenance"><textarea id={id("upd")} rows={2} value={updatePolicy} onChange={(e) => setUpdatePolicy(e.target.value)} /></Field>

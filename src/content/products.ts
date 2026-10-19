@@ -57,8 +57,8 @@ export type Product = {
   requirements?: string[];
   platforms?: string[];
   deployment?: string[];
-  /** Only set when pricing is confirmed. `display` is shown verbatim. */
-  pricing?: { display: string; note?: string };
+  /** `display` (the price) is only set when pricing is confirmed and is shown verbatim. A `note` can stand alone. */
+  pricing?: { display?: string; note?: string };
   licensing?: string;
   installation?: string[];
   /** `category` places the link on the Resources page; when omitted it is guessed from the label. */

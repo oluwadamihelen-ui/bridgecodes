@@ -13,7 +13,7 @@ export function ProductSummary({ product: p, children }: { product: Product; chi
       <p>{p.shortDescription}</p>
       <dl>
         <div><dt>Status</dt><dd><StatusBadge status={p.status} /></dd></div>
-        <div><dt>Price</dt><dd>{p.pricing?.display ?? "Contact us"}</dd></div>
+        <div><dt>Price</dt><dd>{p.pricing?.display || "Contact us"}</dd></div>
         {p.pricing?.note && <div><dt>Note</dt><dd style={{ fontWeight: 500 }}>{p.pricing.note}</dd></div>}
         {p.licensing && <div><dt>Licence</dt><dd style={{ fontWeight: 500 }}>{p.licensing}</dd></div>}
         <div><dt>Sold by</dt><dd>{site.legalOwner}</dd></div>

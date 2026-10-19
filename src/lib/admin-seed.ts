@@ -5,7 +5,7 @@ import { seedProducts } from "@/content/seed-products";
 import type { Product } from "@/content/products";
 
 const FLAG = "bc:seeds-handled";
-const FILL_FLAG = "bc:seed-policies-handled";
+const FILL_FLAG = "bc:seed-policies-handled-v2";
 const POLICY_FIELDS = ["licensing", "updatePolicy", "supportNote"] as const;
 
 /** Starter drafts not yet in the product list. Empty once imported or dismissed, or when there is no storage. */
@@ -50,7 +50,7 @@ export async function pendingFills(): Promise<Product[]> {
   const list = await getAllProducts();
   return list.filter((p) => {
     const seed = seedProducts.find((s) => s.slug === p.slug);
-    return seed && POLICY_FIELDS.some((f) => !p[f] && seed[f]);
+    return seed && (POLICY_FIELDS.some((f) => !p[f] && seed[f]) || (!p.pricing?.note && seed.pricing?.note));
   });
 }
 
@@ -66,6 +66,8 @@ export async function fillPolicies(action: "fill" | "dismiss-fill"): Promise<num
       if (!seed) return p;
       const patch: Partial<Product> = {};
       for (const f of POLICY_FIELDS) if (!p[f] && seed[f]) patch[f] = seed[f];
+      // Keep any price already typed; only add the note when there is none.
+      if (!p.pricing?.note && seed.pricing?.note) patch.pricing = { ...(p.pricing ?? {}), note: seed.pricing.note };
       if (!Object.keys(patch).length) return p;
       changed++;
       return { ...p, ...patch };

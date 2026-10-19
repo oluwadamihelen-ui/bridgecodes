@@ -91,8 +91,7 @@ export function validateProduct(input: unknown, opts: { slug?: string } = {}): P
 
   const pricingDisplay = str("pricingDisplay", "Price", 80);
   const pricingNote = str("pricingNote", "Price note", 200);
-  if (pricingDisplay) product.pricing = { display: pricingDisplay, ...(pricingNote ? { note: pricingNote } : {}) };
-  else if (pricingNote) errors.push("Price note needs a price.");
+  if (pricingDisplay || pricingNote) product.pricing = { ...(pricingDisplay ? { display: pricingDisplay } : {}), ...(pricingNote ? { note: pricingNote } : {}) };
 
   const licensing = str("licensing", "Licensing", 1000); if (licensing) product.licensing = licensing;
   const updatePolicy = str("updatePolicy", "Updates and maintenance", 1000); if (updatePolicy) product.updatePolicy = updatePolicy;

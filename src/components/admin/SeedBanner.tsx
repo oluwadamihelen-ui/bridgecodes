@@ -23,9 +23,9 @@ export function SeedBanner({ names, mode = "import" }: { names: string[]; mode?:
   if (mode === "fill") {
     return (
       <section className="note" aria-labelledby="fill-title" style={{ marginBottom: 24 }}>
-        <h2 id="fill-title" style={{ fontSize: "1.1rem" }}>Add licensing, update and support wording to {names.length} {names.length === 1 ? "draft" : "drafts"}</h2>
+        <h2 id="fill-title" style={{ fontSize: "1.1rem" }}>Add licensing, update, support and price-note wording to {names.length} {names.length === 1 ? "draft" : "drafts"}</h2>
         <p>
-          <strong>{names.join(", ")}</strong> {names.length === 1 ? "has" : "have"} empty Licensing, Updates and maintenance or Support note fields. This fills <strong>only the empty ones</strong> with
+          <strong>{names.join(", ")}</strong> {names.length === 1 ? "has" : "have"} empty Licensing, Updates and maintenance, Support note or Price note fields. This fills <strong>only the empty ones</strong> with
           careful, non-committal wording (nothing you have typed is changed, and no prices are added). Review and edit each product afterwards.
         </p>
         {error && <p className="field__error" role="alert">{error}</p>}

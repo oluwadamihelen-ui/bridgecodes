@@ -359,9 +359,10 @@ const drafts: Product[] = [
  * what is confirmed in writing, without promising response times, update durations or licence terms that
  * have not been decided. Laundrix keeps its own licence summary (from its draft licence file).
  */
-const policies = (p: Product): Pick<Product, "licensing" | "updatePolicy" | "supportNote"> => {
+const policies = (p: Product): Pick<Product, "licensing" | "updatePolicy" | "supportNote" | "pricing"> => {
   const n = p.name;
   return {
+    pricing: { note: "Pricing depends on the licence and options you choose and is confirmed in writing before purchase." },
     licensing: `Ownership of ${n} remains with Numi Innovations Ltd. The type of licence, permitted use and whether source code is delivered are confirmed in writing before purchase; nothing is granted until agreed. See the License Agreement, or contact us to discuss your use case.`,
     updatePolicy:
       p.status === "available"

@@ -112,7 +112,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
             <Block title="Pricing and licensing">
               <p>
-                {p.pricing ? <><strong>{p.pricing.display}</strong>{p.pricing.note ? ` — ${p.pricing.note}` : ""}</> : "Pricing has not been published yet. Contact us for details."}
+                {p.pricing?.display ? <><strong>{p.pricing.display}</strong>{p.pricing.note ? ` — ${p.pricing.note}` : ""}</> : <><strong>Contact us for pricing.</strong>{p.pricing?.note ? ` ${p.pricing.note}` : ""}</>}
               </p>
               <p>
                 {p.licensing ? p.licensing + " " : ""}
@@ -151,7 +151,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
               <div><dt>Status</dt><dd><StatusBadge status={p.status} /></dd></div>
               <div><dt>Category</dt><dd>{p.category}</dd></div>
               {p.version && <div><dt>Version</dt><dd>{p.version}</dd></div>}
-              <div><dt>Price</dt><dd>{p.pricing?.display ?? "Contact us"}</dd></div>
+              <div><dt>Price</dt><dd>{p.pricing?.display || "Contact us"}</dd></div>
               <div><dt>Owner</dt><dd>{site.legalOwner}</dd></div>
             </dl>
             {p.paymentLink && p.status === "available" && <Button href={`/products/${p.slug}/checkout`}>Buy now</Button>}
