@@ -1,14 +1,16 @@
 import { appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { OFFICIAL_EMAIL } from "@/config/site";
 import { formSpecs, type EnquiryKind, type FieldName } from "./enquiry-schema";
 
 type Enquiry = { kind: EnquiryKind; values: Partial<Record<FieldName, string>> };
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
+const enquiryTo = () => env("ENQUIRY_TO_EMAIL") ?? OFFICIAL_EMAIL;
 
 export const deliveryConfigured = () =>
-  Boolean((env("RESEND_API_KEY") && env("ENQUIRY_FROM_EMAIL") && env("ENQUIRY_TO_EMAIL")) || env("ENQUIRY_STORE_DIR"));
+  Boolean((env("RESEND_API_KEY") && env("ENQUIRY_FROM_EMAIL")) || env("ENQUIRY_STORE_DIR"));
 
 const kindLabel: Record<EnquiryKind, string> = {
   contact: "Contact enquiry",
@@ -32,7 +34,7 @@ async function sendEmail(id: string, e: Enquiry): Promise<void> {
   const apiKey = env("RESEND_API_KEY")!;
   const from = env("ENQUIRY_FROM_EMAIL")!;
   const to =
-    (e.kind === "support" || e.kind === "bug") && env("SUPPORT_TO_EMAIL") ? env("SUPPORT_TO_EMAIL")! : env("ENQUIRY_TO_EMAIL")!;
+    (e.kind === "support" || e.kind === "bug") && env("SUPPORT_TO_EMAIL") ? env("SUPPORT_TO_EMAIL")! : enquiryTo();
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -64,7 +66,7 @@ async function persist(id: string, e: Enquiry): Promise<void> {
 export async function deliverEnquiry(e: Enquiry): Promise<string> {
   const id = randomUUID();
   const jobs: Promise<void>[] = [];
-  if (env("RESEND_API_KEY") && env("ENQUIRY_FROM_EMAIL") && env("ENQUIRY_TO_EMAIL")) jobs.push(sendEmail(id, e));
+  if (env("RESEND_API_KEY") && env("ENQUIRY_FROM_EMAIL")) jobs.push(sendEmail(id, e));
   if (env("ENQUIRY_STORE_DIR")) jobs.push(persist(id, e));
   if (!jobs.length) throw new Error("NOT_CONFIGURED");
 

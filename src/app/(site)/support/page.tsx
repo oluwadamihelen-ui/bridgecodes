@@ -67,9 +67,6 @@ export default function SupportPage() {
           <div>
             <h2 style={{ fontSize: "1.3rem" }}>Support contact</h2>
             <ContactDetails variant="support" />
-            {site.contact.supportEmail === null && (
-              <p className="hint" style={{ marginTop: 12 }}>Use the forms on this page to reach support.</p>
-            )}
           </div>
         </div>
       </section>

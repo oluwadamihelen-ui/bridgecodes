@@ -14,6 +14,9 @@ const clean = (value: string | undefined): string | null => {
   return v ? v : null;
 };
 
+/** Official company inbox, used wherever an email address is needed. */
+export const OFFICIAL_EMAIL = "support@bridgecodes.com";
+
 const siteUrlRaw = clean(process.env.SITE_URL)?.replace(/\/+$/, "") ?? null;
 
 export const site = {
@@ -31,8 +34,8 @@ export const site = {
   url: siteUrlRaw ?? "http://localhost:3000",
 
   contact: {
-    email: clean(process.env.CONTACT_EMAIL),
-    supportEmail: clean(process.env.SUPPORT_EMAIL),
+    email: clean(process.env.CONTACT_EMAIL) ?? OFFICIAL_EMAIL,
+    supportEmail: clean(process.env.SUPPORT_EMAIL) ?? OFFICIAL_EMAIL,
     phone: clean(process.env.CONTACT_PHONE),
   },
 
@@ -59,7 +62,7 @@ export const site = {
     effectiveDate: clean(process.env.LEGAL_EFFECTIVE_DATE),
     governingJurisdiction: clean(process.env.LEGAL_GOVERNING_JURISDICTION),
     privacyContactEmail:
-      clean(process.env.LEGAL_PRIVACY_CONTACT_EMAIL) ?? clean(process.env.CONTACT_EMAIL),
+      clean(process.env.LEGAL_PRIVACY_CONTACT_EMAIL) ?? clean(process.env.CONTACT_EMAIL) ?? OFFICIAL_EMAIL,
     refundWindowDays: clean(process.env.LEGAL_REFUND_WINDOW_DAYS),
     /** Flip to true only once a lawyer has reviewed every legal page. */
     reviewed: process.env.LEGAL_REVIEWED === "true",

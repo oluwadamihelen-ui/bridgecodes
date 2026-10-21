@@ -63,9 +63,9 @@ Notes
 
 See `.env.example` for the full annotated list. Values are read at **build time** for static pages, so set them before `npm run build`.
 
-- **Identity/contact:** `SITE_URL`, `CONTACT_EMAIL`, `SUPPORT_EMAIL`, `CONTACT_PHONE`, `REGISTERED_ADDRESS`, `COMPANY_REGISTRATION_NUMBER`, `SOCIAL_*`
+- **Identity/contact:** `SITE_URL`, `CONTACT_EMAIL`, `SUPPORT_EMAIL` (both default to support@bridgecodes.com), `CONTACT_PHONE`, `REGISTERED_ADDRESS`, `COMPANY_REGISTRATION_NUMBER`, `SOCIAL_*`
 - **Legal:** `LEGAL_EFFECTIVE_DATE`, `LEGAL_GOVERNING_JURISDICTION`, `LEGAL_PRIVACY_CONTACT_EMAIL`, `LEGAL_REFUND_WINDOW_DAYS`, `LEGAL_REVIEWED`
-- **Form delivery (at least one required):** `RESEND_API_KEY` + `ENQUIRY_FROM_EMAIL` + `ENQUIRY_TO_EMAIL` (+ optional `SUPPORT_TO_EMAIL`), and/or `ENQUIRY_STORE_DIR`
+- **Form delivery (at least one required):** `RESEND_API_KEY` + `ENQUIRY_FROM_EMAIL` (+ optional `ENQUIRY_TO_EMAIL`, `SUPPORT_TO_EMAIL`; both default to support@bridgecodes.com), and/or `ENQUIRY_STORE_DIR`
 - **Spam:** `FORM_TOKEN_SECRET` (required in production; `openssl rand -hex 32`), optional `TURNSTILE_SITE_KEY`/`TURNSTILE_SECRET_KEY`
 - **Admin:** `ADMIN_PASSWORD`, optional `ADMIN_SESSION_SECRET`, and storage: `KV_REST_API_URL` + `KV_REST_API_TOKEN` (Upstash) or `ADMIN_DATA_DIR`
 - **Analytics (optional):** `PLAUSIBLE_DOMAIN`, `PLAUSIBLE_SCRIPT_SRC`, `ANALYTICS_REQUIRES_CONSENT`
@@ -89,7 +89,8 @@ The in-memory rate limiter is per server instance; add an edge/WAF limit if you 
 
 - [ ] Set `SITE_URL` to the confirmed domain; rebuild
 - [ ] Configure form delivery and `FORM_TOKEN_SECRET`; submit a real test from each form (contact, support, bug)
-- [ ] Add confirmed contact email, support email, address and registration number (only if appropriate)
+- [x] Official email: support@bridgecodes.com (default for contact, support, privacy and enquiry inbox; override with the `*_EMAIL` variables)
+- [ ] Add confirmed address and registration number (only if appropriate)
 - [ ] Have a lawyer review **all five legal pages**; resolve every highlighted `TO CONFIRM`; set effective date, jurisdiction, refund window; then `LEGAL_REVIEWED=true`
 - [ ] Align refund/licence text with each marketplace's agreements
 - [ ] Connect storage, set `ADMIN_PASSWORD`, and add real products in `/admin` (real screenshots, confirmed prices, live purchase links only)
